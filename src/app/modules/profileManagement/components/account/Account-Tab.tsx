@@ -677,7 +677,7 @@ const AccountTab = () => {
       toast.success("Profile updated successfully!")
     } catch (error) {
       console.error("Update error:", error)
-      toast.error("Failed to update profile. Please try again.")
+      toast.error("Failed to update profile. Please try again later.")
     }
   }
 
