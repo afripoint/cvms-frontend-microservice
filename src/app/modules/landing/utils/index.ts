@@ -1,2 +1,0 @@
-export { handleScroll } from "./scroll"
-
