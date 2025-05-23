@@ -3,7 +3,7 @@ name: Deploy Frontend to Hostinger
 on:
   push:
     branches:
-      - main
+      - newbuild
 
 env:
   IMAGE_NAME: microservice-cvms-frontend
