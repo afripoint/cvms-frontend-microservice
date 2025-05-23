@@ -3,10 +3,10 @@ name: Deploy Frontend to Hostinger
 on:
   push:
     branches:
-      - cvms/vin-checkout-integration
+      - main
 
 env:
-  IMAGE_NAME: uatcvmsnigeria-frontend
+  IMAGE_NAME: microservice-cvms-frontend
   IMAGE_TAG: latest
 
 jobs:
@@ -64,7 +64,7 @@ jobs:
       - name: Deploy frontend service
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} '
-            cd ~/cvms
-            docker-compose -f docker-compose.prod.yml pull frontend
-            docker-compose -f docker-compose.prod.yml up -d frontend
+            cd /srv/cvms-microservices
+            docker-compose -f docker-compose.yml pull frontend
+            docker-compose -f docker-compose.yml up -d frontend
           ' 
