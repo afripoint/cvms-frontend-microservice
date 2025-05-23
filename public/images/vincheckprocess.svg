@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1360" height="476.586" viewBox="0 0 1360 476.586">
+  <defs>
+    <linearGradient id="linear-gradient" x1="1.059" x2="-0.072" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#037e1b"/>
+      <stop offset="1" stop-color="#030657"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="-0.059" x2="1.072" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="-0.059" y1="1" x2="1.072" y2="0" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="0.5" y1="0.664" x2="0" y2="1.463" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="gray"/>
+      <stop offset="1"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-5" y1="0.336" x2="1" y2="-0.463" xlink:href="#linear-gradient-4"/>
+  </defs>
+  <g id="Group_256" data-name="Group 256" transform="translate(-280 -1026.212)">
+    <path id="Rectangle_115" data-name="Rectangle 115" d="M187,0H336.3A38.7,38.7,0,0,1,375,38.7V187A187,187,0,0,1,188,374h-1A187,187,0,0,1,0,187v0A187,187,0,0,1,187,0Z" transform="translate(280 1069.635)" fill="url(#linear-gradient)"/>
+    <path id="Rectangle_120" data-name="Rectangle 120" d="M38.7,0H188A187,187,0,0,1,375,187v0A187,187,0,0,1,188,374h-1A187,187,0,0,1,0,187V38.7A38.7,38.7,0,0,1,38.7,0Z" transform="translate(1265 1069.635)" fill="url(#linear-gradient-2)"/>
+    <path id="Rectangle_119" data-name="Rectangle 119" d="M187,0h1A187,187,0,0,1,375,187v0A187,187,0,0,1,188,374H38.7A38.7,38.7,0,0,1,0,335.3V187A187,187,0,0,1,187,0Z" transform="translate(772 1069.635)" fill="url(#linear-gradient-3)"/>
+    <rect id="Rectangle_116" data-name="Rectangle 116" width="297" height="296" rx="148" transform="translate(319 1108.635)" fill="url(#linear-gradient-4)"/>
+    <rect id="Rectangle_117" data-name="Rectangle 117" width="297" height="296" rx="148" transform="translate(812 1108.635)" fill="url(#linear-gradient-5)"/>
+    <rect id="Rectangle_118" data-name="Rectangle 118" width="297" height="296" rx="148" transform="translate(1304 1108.635)" fill="url(#linear-gradient-4)"/>
+    <path id="Icon_ion-enter" data-name="Icon ion-enter" d="M25.954,17.557V39.716h28.4L44.6,28.489a3.786,3.786,0,0,1,.053-4.759,2.694,2.694,0,0,1,4.136-.061L63.605,40.715a3.782,3.782,0,0,1,0,4.82L48.79,62.58a2.694,2.694,0,0,1-4.136-.061,3.786,3.786,0,0,1-.053-4.759l9.756-11.227h-28.4V68.693C25.96,75.28,30.6,80.618,36.325,80.625H74.844c5.725-.007,10.364-5.345,10.371-11.932V17.557C85.209,10.97,80.569,5.632,74.844,5.625H36.325C30.6,5.632,25.96,10.97,25.954,17.557ZM5.213,39.716a3.443,3.443,0,0,0,0,6.818H25.954V39.716Z" transform="translate(424.75 1173.01)" fill="#037e1b"/>
+    <text id="enter_vin" data-name="enter
+vin" transform="translate(468 1297.635)" fill="#00ac22" font-size="30" font-family="Montserrat-Bold, Montserrat" font-weight="700" letter-spacing="0.015em"><tspan x="-53" y="0">ENTER</tspan><tspan x="-28" y="30">VIN</tspan></text>
+    <g id="Icon_feather-search" data-name="Icon feather-search" transform="translate(919.5 1174.135)">
+      <path id="Path_3" data-name="Path 3" d="M72.044,38.272A33.772,33.772,0,1,1,38.272,4.5,33.772,33.772,0,0,1,72.044,38.272Z" transform="translate(0 0)" fill="none" stroke="#037e1b" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <path id="Path_4" data-name="Path 4" d="M41.192,41.192,24.975,24.975" transform="translate(38.308 38.308)" fill="none" stroke="#037e1b" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    </g>
+    <text id="Click_search" data-name="Click
+search" transform="translate(961 1297.635)" fill="#00ac22" font-size="30" font-family="Montserrat-Bold, Montserrat" font-weight="700" letter-spacing="0.015em"><tspan x="-47" y="0">CLICK</tspan><tspan x="-66" y="30">SEARCH</tspan></text>
+    <path id="Icon_ion-information-circle-sharp" data-name="Icon ion-information-circle-sharp" d="M41.438,3.938a37.5,37.5,0,1,0,37.5,37.5A37.543,37.543,0,0,0,41.438,3.938Zm0,15.375a4.875,4.875,0,1,1-4.875,4.875A4.875,4.875,0,0,1,41.438,19.313Zm12,42.375h-22.5v-6h8.25v-16.5h-6v-6h12v22.5h8.25Z" transform="translate(1411.063 1159.697)" fill="#037e1b"/>
+    <text id="confirm_vehicle_info" data-name="confirm
+vehicle
+info" transform="translate(1453 1282.635)" fill="#00ac22" font-size="30" font-family="Montserrat-Bold, Montserrat" font-weight="700" letter-spacing="0.015em"><tspan x="-76" y="0">CONFIRM</tspan><tspan x="-69" y="30">VEHICLE</tspan><tspan x="-39" y="60">INFO</tspan></text>
+    <g id="Group_81" data-name="Group 81">
+      <path id="Path_12" data-name="Path 12" d="M4361,1433s723.376,162.842,542.588-73.744" transform="translate(-3780 10.635)" fill="none" stroke="#01043d" stroke-linecap="round" stroke-width="3" stroke-dasharray="8 10"/>
+      <path id="Polygon_7" data-name="Polygon 7" d="M8.128,1.549a1,1,0,0,1,1.743,0l7.29,12.96A1,1,0,0,1,16.29,16H1.71a1,1,0,0,1-.872-1.49Z" transform="translate(1110.206 1364.207) rotate(-30)" fill="#01043d"/>
+    </g>
+    <g id="Group_82" data-name="Group 82">
+      <path id="Path_13" data-name="Path 13" d="M4552,1200.8c-62.708-111.75,34.651-191.962,213.207-183.034s203.107,312.472,303.545,421.838,149.541,8.928,149.541,8.928" transform="translate(-3780 10.635)" fill="none" stroke="#01043d" stroke-linecap="round" stroke-width="3" stroke-dasharray="8 10"/>
+      <path id="Polygon_8" data-name="Polygon 8" d="M8.128,1.549a1,1,0,0,1,1.743,0l7.29,12.96A1,1,0,0,1,16.29,16H1.71a1,1,0,0,1-.872-1.49Z" transform="translate(1438.206 1441.207) rotate(30)" fill="#01043d"/>
+    </g>
+  </g>
+</svg>

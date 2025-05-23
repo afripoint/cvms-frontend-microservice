@@ -1,0 +1,70 @@
+name: Deploy Frontend to Hostinger
+
+on:
+  push:
+    branches:
+      - cvms/vin-checkout-integration
+
+env:
+  IMAGE_NAME: uatcvmsnigeria-frontend
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      # Checkout the code from GitHub repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      # Install dependencies and build the frontend
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      # Set up Docker Buildx for building multi-platform images
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Log in to Docker Hub using the credentials stored in secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # Build and push the Docker image to Docker Hub
+      - name: Build and push Docker images
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+
+      # Set up SSH agent for deployment
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Add server to known hosts
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      # Deploy frontend service on server (using correct service name)
+      - name: Deploy frontend service
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} '
+            cd ~/cvms
+            docker-compose -f docker-compose.prod.yml pull frontend
+            docker-compose -f docker-compose.prod.yml up -d frontend
+          ' 
