@@ -7,6 +7,7 @@ import {
   appRemoveFromLocalStorage,
   StorageKeys,
 } from "../../../core/storage/storage"
+import { TeamMember } from "../../profileManagement/types"
 
 const API_URL = "https://cvms-microservice.afripointdev.com/auth"
 
@@ -636,54 +637,397 @@ const authService = {
     }
   },
 
-  logout: async () => {
-    try {
-      console.log("Logging out user")
+  // Add to authService object in authService.ts
+// createSubAccount: async (subAccountData: {
+//   email: string;
+//   first_name: string;
+//   last_name: string;
+//   phone_number: string;
+//   role: string;
+// }): Promise<any> => {
+//   try {
+//     console.log("Creating sub-account with data:", subAccountData);
+    
+//     const token = getAuthToken();
+//     if (!token) {
+//       throw new Error("User is not authenticated. Please login first.");
+//     }
 
-      // Get token for logout request
-      const token = getAuthToken()
+//     const response = await axios({
+//       method: "post",
+//       url: `${API_URL}/create/sub-account/`,
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//       data: subAccountData,
+//       withCredentials: true,
+//     });
 
-      if (token) {
-        try {
-          await axios({
-            method: "post",
-            url: `${API_URL}/logout/`,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            withCredentials: true,
-          })
-        } catch (logoutError) {
-          console.warn("Logout API call failed, but will continue with local logout:", logoutError)
-        }
-      }
+//     console.log("Sub-account created successfully:", response.data);
+//     return response.data;
+//   } catch (error: any) {
+//     console.error("Sub-account creation error:", error);
+    
+//     if (error.response?.status === 403) {
+//       throw new Error("You don't have permission to create sub-accounts.");
+//     } else if (error.response?.data?.detail) {
+//       throw new Error(error.response.data.detail);
+//     }
+    
+//     throw error;
+//   }
+// },
 
-      console.log("Clearing local storage data")
+// Add to authService object in authService.ts
+// createSubAccount: async (subAccountData: {
+//   first_name: string;
+//   last_name: string;
+//   email: string;
+//   phone?: string;
+//   role?: string;
+// }): Promise<{ id: number }> => {
+//   try {
+//     console.log("Creating sub-account with data:", subAccountData);
+    
+//     const token = getAuthToken();
+//     if (!token) {
+//       throw new Error("User is not authenticated. Please login first.");
+//     }
 
-      // Clear stored user data and tokens
-      localStorage.removeItem("authToken")
-      localStorage.removeItem(StorageKeys.USER_DATA)
-      localStorage.removeItem(StorageKeys.TOKEN_DATA)
-      localStorage.removeItem("userPhoneNumber")
+//     const response = await axios({
+//       method: "post",
+//       url: `${API_URL}/create/sub-account/`,
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//       data: {
+//         first_name: subAccountData.first_name,
+//         last_name: subAccountData.last_name,
+//         email: subAccountData.email,
+//         ...(subAccountData.phone && { phone: subAccountData.phone }),
+//         ...(subAccountData.role && { role: subAccountData.role })
+//       },
+//       withCredentials: true,
+//     });
 
-      // Remove auth header
-      delete authAxios.defaults.headers.common["Authorization"]
+//     console.log("Sub-account created successfully:", response.data);
+//     return response.data;
+//   } catch (error: unknown) {
+//     console.error("Sub-account creation error:", error);
+    
+//     if (axios.isAxiosError(error)) {
+//       if (error.response?.status === 403) {
+//         throw new Error("You don't have permission to create sub-accounts.");
+//       } else if (error.response?.data?.detail) {
+//         throw new Error(error.response.data.detail);
+//       } else if (error.response?.data?.message) {
+//         throw new Error(error.response.data.message);
+//       }
+//     }
+    
+//     throw new Error("Failed to create sub-account. Please try again.");
+//   }
+// },
 
-      console.log("User logged out successfully")
-    } catch (error: any) {
-      console.error("Logout error:", error.response?.data || error.message)
-
-      // Still remove auth header and clear storage even if API call fails
-      delete authAxios.defaults.headers.common["Authorization"]
-      localStorage.removeItem("authToken")
-      localStorage.removeItem(StorageKeys.USER_DATA)
-      localStorage.removeItem(StorageKeys.TOKEN_DATA)
-      localStorage.removeItem("userPhoneNumber")
-
-      throw error
+// Add to authService object in authService.ts
+createSubAccount: async (subAccountData: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  role?: string;
+}): Promise<{ id: number }> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("User is not authenticated. Please login first.");
     }
-  },
+
+    const response = await authAxios.post("/create/sub-account/", {
+      first_name: subAccountData.first_name,
+      last_name: subAccountData.last_name,
+      email: subAccountData.email,
+      phone_number: subAccountData.phone_number,
+
+      // ...(subAccountData.phone_number && { phone: subAccountData.phone_number }),
+      // ...(subAccountData.role && { role: subAccountData.role })
+    });
+
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error("You don't have permission to create sub-accounts.");
+      }
+      throw new Error(error.response?.data?.message || "Failed to create sub-account");
+    }
+    throw new Error("Failed to create sub-account");
+  }
+},
+  // logout: async () => {
+  //   try {
+  //     console.log("Logging out user")
+
+  //     // Get token for logout request
+  //     const token = getAuthToken()
+
+  //     if (token) {
+  //       try {
+  //         await axios({
+  //           method: "post",
+  //           url: `${API_URL}/logout/`,
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //           withCredentials: true,
+  //         })
+  //       } catch (logoutError) {
+  //         console.warn("Logout API call failed, but will continue with local logout:", logoutError)
+  //       }
+  //     }
+
+  //     console.log("Clearing local storage data")
+
+  //     // Clear stored user data and tokens
+  //     localStorage.removeItem("authToken")
+  //     localStorage.removeItem(StorageKeys.USER_DATA)
+  //     localStorage.removeItem(StorageKeys.TOKEN_DATA)
+  //     localStorage.removeItem("userPhoneNumber")
+
+  //     // Remove auth header
+  //     delete authAxios.defaults.headers.common["Authorization"]
+
+  //     console.log("User logged out successfully")
+  //   } catch (error: any) {
+  //     console.error("Logout error:", error.response?.data || error.message)
+
+  //     // Still remove auth header and clear storage even if API call fails
+  //     delete authAxios.defaults.headers.common["Authorization"]
+  //     localStorage.removeItem("authToken")
+  //     localStorage.removeItem(StorageKeys.USER_DATA)
+  //     localStorage.removeItem(StorageKeys.TOKEN_DATA)
+  //     localStorage.removeItem("userPhoneNumber")
+
+  //     throw error
+  //   }
+  // },
+
+  // Add this to the authService object in authService.ts
+listSubAccounts: async (): Promise<TeamMember[]> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("User is not authenticated. Please login first.");
+    }
+
+    const response = await authAxios.get("/list/sub-account/");
+    return response.data.map((member: any) => ({
+      id: member.id,
+      name: `${member.first_name} ${member.last_name}`,
+      email: member.email,
+      phone_number: member.phone_number || '',
+      role: member.role || 'Team Member',
+      status: member.is_active ? 'Active' : 'Inactive',
+      initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
+      lastLogin: member.last_login || 'Never'
+    }));
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch sub-accounts");
+    }
+    throw new Error("Failed to fetch sub-accounts");
+  }
+},
+
+
+// Add these methods to the authService object in authService.ts
+
+// Get sub-account details
+getSubAccountDetails: async (slug: string): Promise<TeamMember> => {
+  try {
+    const response = await authAxios.get(`/detail/sub-account/${slug}/`);
+    const member = response.data;
+    return {
+      id: member.id,
+      name: `${member.first_name} ${member.last_name}`,
+      email: member.email,
+      phone_number: member.phone_number || '',
+      role: member.role || 'Team Member',
+      status: member.is_active ? 'Active' : 'Inactive',
+      initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
+      lastLogin: member.last_login || 'Never',
+      slug: member.slug
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch sub-account details");
+    }
+    throw new Error("Failed to fetch sub-account details");
+  }
+},
+
+// Update sub-account
+updateSubAccount: async (slug: string, updateData: {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  role?: string;
+}): Promise<TeamMember> => {
+  try {
+    const response = await authAxios.patch(`/update/sub-account/${slug}/`, updateData);
+    const member = response.data;
+    return {
+      id: member.id,
+      name: `${member.first_name} ${member.last_name}`,
+      email: member.email,
+      phone_number: member.phone_number || '',
+      role: member.role || 'Team Member',
+      status: member.is_active ? 'Active' : 'Inactive',
+      initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
+      lastLogin: member.last_login || 'Never',
+      slug: member.slug
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to update sub-account");
+    }
+    throw new Error("Failed to update sub-account");
+  }
+},
+
+// Toggle sub-account status (activate/deactivate)
+// toggleSubAccountStatus: async (slug: string): Promise<{ is_active: boolean }> => {
+//   try {
+//     const response = await authAxios.patch(`/deactivate-activate/sub-account/${slug}/`);
+//     return response.data;
+//   } catch (error: unknown) {
+//     if (axios.isAxiosError(error)) {
+//       throw new Error(error.response?.data?.message || "Failed to toggle sub-account status");
+//     }
+//     throw new Error("Failed to toggle sub-account status");
+//   }
+// },
+ // Toggle sub-account status (activate/deactivate)
+toggleSubAccountStatus: async (slug: string): Promise<{ is_active: boolean }> => {
+  try {
+    console.log("Toggling status for sub-account:", slug);
+    const response = await authAxios.patch(`/deactivate-activate/sub-account/${slug}/`);
+    console.log("Toggle status response:", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || "Failed to toggle sub-account status";
+      console.error("Error toggling status:", errorMessage);
+      throw new Error(errorMessage);
+    }
+    throw new Error("Failed to toggle sub-account status");
+  }
+},
+
+
+
+  logout: async () => {
+  try {
+    console.log("Logging out user")
+
+    // Get both access and refresh tokens
+    const token = getAuthToken()
+    let refreshToken = null
+
+    // Try to get refresh token from token data
+    const tokenDataStr = localStorage.getItem(StorageKeys.TOKEN_DATA)
+    if (tokenDataStr) {
+      try {
+        const tokenData = JSON.parse(tokenDataStr)
+        refreshToken = tokenData?.refresh_token
+      } catch (e) {
+        console.error("Error parsing token data for refresh token:", e)
+      }
+    }
+
+    // Also check if refresh token is stored separately
+    if (!refreshToken) {
+      refreshToken = localStorage.getItem("refresh_token")
+    }
+
+    console.log("Tokens for logout:", {
+      hasAccessToken: !!token,
+      hasRefreshToken: !!refreshToken
+    })
+
+    if (token && refreshToken) {
+      try {
+        await axios({
+          method: "post",
+          url: `${API_URL}/logout/`,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          data: {
+            refresh_token: refreshToken
+          },
+          withCredentials: true,
+        })
+        console.log("Logout API call successful")
+      } catch (logoutError: any) {
+        console.warn("Logout API call failed:", logoutError.response?.data || logoutError.message)
+        // Continue with local logout even if API call fails
+      }
+    } else {
+      console.warn("Missing tokens for logout API call:", {
+        hasAccessToken: !!token,
+        hasRefreshToken: !!refreshToken
+      })
+    }
+
+    console.log("Clearing local storage data")
+
+    // Clear all stored user data and tokens
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("refresh_token")
+    localStorage.removeItem("expires_at")
+    localStorage.removeItem("user")
+    localStorage.removeItem("csrf_token")
+    localStorage.removeItem("ninVerified")
+    localStorage.removeItem("firstName")
+    localStorage.removeItem("lastName")
+    localStorage.removeItem(StorageKeys.USER_DATA)
+    localStorage.removeItem(StorageKeys.TOKEN_DATA)
+    localStorage.removeItem("userPhoneNumber")
+
+    // Remove auth header
+    delete authAxios.defaults.headers.common["Authorization"]
+
+    console.log("User logged out successfully")
+  } catch (error: any) {
+    console.error("Logout error:", error.response?.data || error.message)
+
+    // Still remove auth header and clear storage even if API call fails
+    delete authAxios.defaults.headers.common["Authorization"]
+    
+    // Clear all possible storage keys
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("refresh_token")
+    localStorage.removeItem("expires_at")
+    localStorage.removeItem("user")
+    localStorage.removeItem("csrf_token")
+    localStorage.removeItem("ninVerified")
+    localStorage.removeItem("firstName")
+    localStorage.removeItem("lastName")
+    localStorage.removeItem(StorageKeys.USER_DATA)
+    localStorage.removeItem(StorageKeys.TOKEN_DATA)
+    localStorage.removeItem("userPhoneNumber")
+
+    throw error
+  }
+},
 }
 
 export default authService

@@ -198,6 +198,8 @@ export const setNewPassword = createAsyncThunk(
   },
 )
 
+
+
 export const verifyNIN = createAsyncThunk(
   "auth/verifyNIN",
   async ({ nin, email }: { nin: string; email?: string }, { rejectWithValue }) => {

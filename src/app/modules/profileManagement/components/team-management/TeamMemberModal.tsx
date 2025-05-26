@@ -21,9 +21,11 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
+    phone_number: '',
     role: 'Team Member'
   });
+
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (editMember && (mode === 'edit' || mode === 'view')) {
@@ -36,7 +38,7 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
         firstName,
         lastName,
         email: editMember.email,
-        phone: editMember.phone || '',
+        phone_number: editMember.phone_number || '',
         role: editMember.role
       });
     } else {
@@ -45,7 +47,7 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
         firstName: '',
         lastName: '',
         email: '',
-        phone: '',
+        phone_number: '',
         role: 'Team Member'
       });
     }
@@ -56,19 +58,30 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
-    // Combine first and last name
-    const memberData = {
-      name: `${formData.firstName} ${formData.lastName}`.trim(),
-      email: formData.email,
-      phone: formData.phone,
-      role: formData.role
-    };
-    
-    onSubmit(memberData);
-    onClose();
+    try {
+      // Combine first and last name for local state
+      const memberData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phone_number: formData.phone_number,
+        role: formData.role
+      };
+      
+      await onSubmit(memberData);
+      onClose();
+    } catch (err: unknown) {
+      let errorMessage = 'Failed to save team member';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      setError(errorMessage);
+    }
   };
 
   if (!isOpen) return null;
@@ -130,27 +143,18 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
               />
             </div>
             
-            {/* Phone number field can be uncommented and made responsive if needed */}
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-              <div className="flex">
-                <div className="w-1/4 sm:w-1/5">
-                  <div className="flex items-center border border-gray-300 rounded-l-md px-2 sm:px-3 py-2">
-                    <span className="text-green-500 text-sm sm:text-base">+234</span>
-                  </div>
-                </div>
-                <div className="relative w-3/4 sm:w-4/5">
-                  <input
-                    type="text"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full py-2 px-3 sm:px-4 border border-gray-300 rounded-r-md bg-[#F5F7FA]"
-                    disabled={isViewMode}
-                  />
-                </div>
-              </div>
-            </div> */}
+              <input
+                type="text"
+                name="phone_number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                className="w-full py-2 px-3 border rounded-md bg-[#F5F7FA]"
+                required
+                disabled={isViewMode}
+              />
+            </div>
             
             {/* Role selector can be uncommented and made responsive if needed */}
             {/* <div>
@@ -168,6 +172,12 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
               </select>
             </div> */}
           </div>
+          
+          {error && (
+            <div className="mt-4 text-red-500 text-sm">
+              {error}
+            </div>
+          )}
           
           <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row sm:justify-end sm:space-x-3 space-y-2 sm:space-y-0">
             <button

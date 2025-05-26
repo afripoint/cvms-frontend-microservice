@@ -5,7 +5,7 @@ import { TeamMember } from '../../types';
 interface TeamMemberRowProps {
   member: TeamMember;
   onEdit: (member: TeamMember) => void;
-  onDelete: (id: number) => void;
+  onDelete: (member: TeamMember) => void; // Changed from (id: number) => void
   onView: (member: TeamMember) => void;
 }
 
@@ -28,8 +28,8 @@ const TeamMemberRow: React.FC<TeamMemberRowProps> = ({
       <td className="py-3 sm:py-4 px-2 sm:px-6 text-gray-600 text-xs sm:text-sm">
         <span className="truncate block max-w-[100px] sm:max-w-[200px] md:max-w-none">{member.email}</span>
       </td>
-      {/* <td className="hidden md:table-cell py-4 px-6 text-gray-600">{member.role}</td>
-      <td className="hidden lg:table-cell py-4 px-6 text-gray-600">{member.phone || 'N/A'}</td> */}
+      {/* <td className="hidden md:table-cell py-4 px-6 text-gray-600">{member.role}</td>*/}
+      <td className="lg:table-cell py-4 px-6 text-gray-600">{member.phone_number}</td> 
       <td className="hidden sm:table-cell py-3 sm:py-4 px-2 sm:px-6 text-gray-600 text-xs sm:text-sm">{member.lastLogin || 'Never'}</td>
       <td className="py-3 sm:py-4 px-2 sm:px-6">
         <span className={`inline-flex items-center ${
@@ -60,11 +60,35 @@ const TeamMemberRow: React.FC<TeamMemberRowProps> = ({
             <FiEdit2 size={14} className="sm:hidden" />
             <FiEdit2 size={16} className="hidden sm:block" />
           </button>
-          <button 
+          {/* <button 
             className="text-red-500 hover:text-red-700 p-1 sm:p-2 rounded-md hover:bg-red-100"
             onClick={() => onDelete(member.id)}
-            title="Delete member"
-            aria-label="Delete member"
+            title="Deactivate member"
+            aria-label="Deactivate member"
+          >
+            <FiTrash2 size={14} className="sm:hidden" />
+            <FiTrash2 size={16} className="hidden sm:block" />
+          </button> */}
+
+          {/* <button 
+            className="text-red-500 hover:text-red-700 p-1 sm:p-2 rounded-md hover:bg-red-100"
+            onClick={() => onDelete(member)} // Passing the full member object
+            title={member.status === 'Active' ? 'Deactivate member' : 'Activate member'}
+            aria-label={member.status === 'Active' ? 'Deactivate member' : 'Activate member'}
+          >
+            <FiTrash2 size={14} className="sm:hidden" />
+            <FiTrash2 size={16} className="hidden sm:block" />
+          </button> */}
+
+          <button 
+            className={`p-1 sm:p-2 rounded-md hover:bg-opacity-80 ${
+              member.status === 'Active' 
+                ? 'text-red-500 hover:bg-red-100' 
+                : 'text-green-600 hover:bg-green-100'
+            }`}
+            onClick={() => onDelete(member)}
+            title={member.status === 'Active' ? 'Deactivate member' : 'Activate member'}
+            aria-label={member.status === 'Active' ? 'Deactivate member' : 'Activate member'}
           >
             <FiTrash2 size={14} className="sm:hidden" />
             <FiTrash2 size={16} className="hidden sm:block" />

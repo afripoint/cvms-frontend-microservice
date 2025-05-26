@@ -36,10 +36,10 @@ const TeamMemberView = ({ member, onClose }: TeamMemberViewProps) => {
               <p className="font-medium text-sm sm:text-base break-words">{member.email}</p>
             </div>
             
-            {member.phone && (
+            {member.phone_number && (
               <div>
                 <p className="text-xs sm:text-sm text-gray-500">Phone</p>
-                <p className="font-medium text-sm sm:text-base">{member.phone}</p>
+                <p className="font-medium text-sm sm:text-base">{member.phone_number}</p>
               </div>
             )}
             
