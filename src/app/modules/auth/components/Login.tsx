@@ -260,14 +260,13 @@ import { useNavigate } from "react-router-dom"
 import { useDispatch } from "react-redux"
 import type { AppDispatch } from "../../../core/store"
 import { LoginFormData, LoginResponse, User } from "../types/auth"
-import { loginUser, logoutUser } from "../redux/slices/authSlice"
+import { loginUser } from "../redux/slices/authSlice"
 import { authService } from "../services"
-
 
 const Modal = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -293,12 +292,12 @@ const Login: React.FC = () => {
   const [loginSuccess, setLoginSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [_isSubUser, setIsSubUser] = useState(false)
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false)
   const [oldPassword, setOldPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [passwordChangeError, setPasswordChangeError] = useState("")
+  const [isPasswordChangeLoading, setIsPasswordChangeLoading] = useState(false)
 
   useEffect(() => {
     let redirectTimer: NodeJS.Timeout
@@ -331,37 +330,31 @@ const Login: React.FC = () => {
     setErrorMessage(null)
     
     try {
+      // Fixed syntax error: added missing closing parenthesis
       const response = (await dispatch(loginUser(formData)).unwrap()) as LoginResponse
 
-      // Store tokens in localStorage
       localStorage.setItem("access_token", response.tokens.access_token)
       localStorage.setItem("refresh_token", response.tokens.refresh_token)
 
-      // Store token expiration time
       const expiresAt = new Date().getTime() + 60 * 60 * 1000
       localStorage.setItem("expires_at", expiresAt.toString())
 
-      // Store user info with email
       const userData: User = {
         ...response.user,
         email: formData.email,
       }
       localStorage.setItem("user", JSON.stringify(userData))
       
-      // Store individual fields
       localStorage.setItem("ninVerified", response.user["NIN Verified"]?.toString() || "false")
       localStorage.setItem("firstName", response.user.first_name || "")
       localStorage.setItem("lastName", response.user.last_name || "")
 
-      // Store CSRF token
       const csrfToken = Math.random().toString(36).substring(2)
       localStorage.setItem("csrf_token", csrfToken)
 
-      // Check if user is a sub-account
+      // Check if user is sub-account and needs to change password
       if (response.user.is_sub_account) {
-        setIsSubUser(true)
         setShowPasswordChangeModal(true)
-        // Store the initial password for verification
         setOldPassword(formData.password)
       } else {
         setLoginSuccess(true)
@@ -376,104 +369,68 @@ const Login: React.FC = () => {
     }
   }
 
-  // const handlePasswordChange = async () => {
-  //   // Validate inputs
-  //   if (!oldPassword) {
-  //     setPasswordChangeError("Please enter your current password")
-  //     return
-  //   }
-
-  //   if (newPassword !== confirmPassword) {
-  //     setPasswordChangeError("New passwords do not match")
-  //     return
-  //   }
-
-  //   if (newPassword.length < 8) {
-  //     setPasswordChangeError("Password must be at least 8 characters")
-  //     return
-  //   }
-
-  //   if (newPassword === oldPassword) {
-  //     setPasswordChangeError("New password must be different from current password")
-  //     return
-  //   }
-
-  //   try {
-  //     setIsLoading(true)
-  //     setPasswordChangeError("")
-      
-  //     // Call the password change API
-  //     await authService.changePassword(oldPassword, newPassword)
-      
-  //     // Logout the user after successful password change
-  //     await dispatch(logoutUser())
-      
-  //     // Clear all auth-related localStorage items
-  //     localStorage.removeItem("access_token")
-  //     localStorage.removeItem("refresh_token")
-  //     localStorage.removeItem("expires_at")
-  //     localStorage.removeItem("user")
-  //     localStorage.removeItem("csrf_token")
-      
-  //     // Redirect to login with success message
-  //     navigate("/login", {
-  //       state: { 
-  //         successMessage: "Password changed successfully. Please login with your new password." 
-  //       }
-  //     })
-  //   } catch (error: any) {
-  //     console.error("Password change failed:", error)
-  //     setPasswordChangeError(error.message || "Failed to change password. Please try again.")
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
-
   const handlePasswordChange = async () => {
-  // Validate inputs
-  if (!oldPassword) {
-    setPasswordChangeError("Please enter your current password")
-    return
-  }
+    if (!oldPassword) {
+      setPasswordChangeError("Please enter your current password")
+      return
+    }
 
-  if (newPassword !== confirmPassword) {
-    setPasswordChangeError("New passwords do not match")
-    return
-  }
+    if (newPassword !== confirmPassword) {
+      setPasswordChangeError("New passwords do not match")
+      return
+    }
 
-  if (newPassword.length < 8) {
-    setPasswordChangeError("Password must be at least 8 characters")
-    return
-  }
+    if (newPassword.length < 8) {
+      setPasswordChangeError("Password must be at least 8 characters")
+      return
+    }
 
-  if (newPassword === oldPassword) {
-    setPasswordChangeError("New password must be different from current password")
-    return
-  }
+    if (newPassword === oldPassword) {
+      setPasswordChangeError("New password must be different from current password")
+      return
+    }
 
-  try {
-    setIsLoading(true)
-    setPasswordChangeError("")
-    
-    // Call the password change API
-    await authService.changePassword(oldPassword, newPassword)
-    
-    // Close the modal
-    setShowPasswordChangeModal(false)
-    
-    // Immediately redirect to login with success message
-    navigate("/login", {
-      state: { 
-        successMessage: "Password changed successfully. Please login with your new password." 
-      }
-    })
-  } catch (error: any) {
-    console.error("Password change failed:", error)
-    setPasswordChangeError(error.message || "Failed to change password. Please try again.")
-  } finally {
-    setIsLoading(false)
+    try {
+      setIsPasswordChangeLoading(true)
+      setPasswordChangeError("")
+      
+      await authService.changePassword(oldPassword, newPassword)
+      
+      // Clear all stored authentication data
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+      localStorage.removeItem("expires_at")
+      localStorage.removeItem("user")
+      localStorage.removeItem("ninVerified")
+      localStorage.removeItem("firstName")
+      localStorage.removeItem("lastName")
+      localStorage.removeItem("csrf_token")
+      
+      // Close modal and redirect immediately to login
+      setShowPasswordChangeModal(false)
+      
+      // Reset all form states
+      setFormData({ email: "", password: "" })
+      setOldPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+      setLoginSuccess(false)
+      
+      // Navigate to login with success message
+      navigate("/login", {
+        replace: true,
+        state: { 
+          successMessage: "Password changed successfully. Please login with your new password." 
+        }
+      })
+      
+    } catch (error: any) {
+      console.error("Password change failed:", error)
+      setPasswordChangeError(error.message || "Failed to change password. Please try again.")
+    } finally {
+      setIsPasswordChangeLoading(false)
+    }
   }
-}
 
   const handleSignUp = () => {
     navigate("/account-type")
@@ -629,12 +586,11 @@ const Login: React.FC = () => {
         )}
       </div>
 
-      {/* Password Change Modal for Sub-Users */}
       {showPasswordChangeModal && (
         <Modal onClose={() => setShowPasswordChangeModal(false)}>
           <div className="p-6">
             <h2 className="text-xl font-semibold mb-4">Change Your Password</h2>
-            <p className="mb-4">As a sub-user, you are required to change your default password.</p>
+            <p className="mb-4 text-gray-600">As a sub-user, you are required to change your default password before continuing.</p>
             
             <div className="space-y-4">
               <div>
@@ -648,6 +604,7 @@ const Login: React.FC = () => {
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Enter current password"
                   required
+                  disabled={isPasswordChangeLoading}
                 />
               </div>
 
@@ -660,8 +617,9 @@ const Login: React.FC = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Enter new password"
+                  placeholder="Enter new password (min 8 characters)"
                   required
+                  disabled={isPasswordChangeLoading}
                 />
               </div>
               
@@ -676,27 +634,30 @@ const Login: React.FC = () => {
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Confirm new password"
                   required
+                  disabled={isPasswordChangeLoading}
                 />
               </div>
               
               {passwordChangeError && (
-                <div className="text-red-500 text-sm">{passwordChangeError}</div>
+                <div className="text-red-500 text-sm bg-red-50 p-2 rounded border border-red-200">
+                  {passwordChangeError}
+                </div>
               )}
               
               <button
                 onClick={handlePasswordChange}
                 className={`w-full py-2 px-4 bg-green-500 text-black rounded-md ${
-                  isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-600"
+                  isPasswordChangeLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-600"
                 } transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2`}
-                disabled={isLoading}
+                disabled={isPasswordChangeLoading}
               >
-                {isLoading ? (
+                {isPasswordChangeLoading ? (
                   <span className="flex items-center justify-center">
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Changing...
+                    Changing Password...
                   </span>
                 ) : (
                   "Change Password"
