@@ -376,58 +376,104 @@ const Login: React.FC = () => {
     }
   }
 
+  // const handlePasswordChange = async () => {
+  //   // Validate inputs
+  //   if (!oldPassword) {
+  //     setPasswordChangeError("Please enter your current password")
+  //     return
+  //   }
+
+  //   if (newPassword !== confirmPassword) {
+  //     setPasswordChangeError("New passwords do not match")
+  //     return
+  //   }
+
+  //   if (newPassword.length < 8) {
+  //     setPasswordChangeError("Password must be at least 8 characters")
+  //     return
+  //   }
+
+  //   if (newPassword === oldPassword) {
+  //     setPasswordChangeError("New password must be different from current password")
+  //     return
+  //   }
+
+  //   try {
+  //     setIsLoading(true)
+  //     setPasswordChangeError("")
+      
+  //     // Call the password change API
+  //     await authService.changePassword(oldPassword, newPassword)
+      
+  //     // Logout the user after successful password change
+  //     await dispatch(logoutUser())
+      
+  //     // Clear all auth-related localStorage items
+  //     localStorage.removeItem("access_token")
+  //     localStorage.removeItem("refresh_token")
+  //     localStorage.removeItem("expires_at")
+  //     localStorage.removeItem("user")
+  //     localStorage.removeItem("csrf_token")
+      
+  //     // Redirect to login with success message
+  //     navigate("/login", {
+  //       state: { 
+  //         successMessage: "Password changed successfully. Please login with your new password." 
+  //       }
+  //     })
+  //   } catch (error: any) {
+  //     console.error("Password change failed:", error)
+  //     setPasswordChangeError(error.message || "Failed to change password. Please try again.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
+
   const handlePasswordChange = async () => {
-    // Validate inputs
-    if (!oldPassword) {
-      setPasswordChangeError("Please enter your current password")
-      return
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordChangeError("New passwords do not match")
-      return
-    }
-
-    if (newPassword.length < 8) {
-      setPasswordChangeError("Password must be at least 8 characters")
-      return
-    }
-
-    if (newPassword === oldPassword) {
-      setPasswordChangeError("New password must be different from current password")
-      return
-    }
-
-    try {
-      setIsLoading(true)
-      setPasswordChangeError("")
-      
-      // Call the password change API
-      await authService.changePassword(oldPassword, newPassword)
-      
-      // Logout the user after successful password change
-      await dispatch(logoutUser())
-      
-      // Clear all auth-related localStorage items
-      localStorage.removeItem("access_token")
-      localStorage.removeItem("refresh_token")
-      localStorage.removeItem("expires_at")
-      localStorage.removeItem("user")
-      localStorage.removeItem("csrf_token")
-      
-      // Redirect to login with success message
-      navigate("/login", {
-        state: { 
-          successMessage: "Password changed successfully. Please login with your new password." 
-        }
-      })
-    } catch (error: any) {
-      console.error("Password change failed:", error)
-      setPasswordChangeError(error.message || "Failed to change password. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+  // Validate inputs
+  if (!oldPassword) {
+    setPasswordChangeError("Please enter your current password")
+    return
   }
+
+  if (newPassword !== confirmPassword) {
+    setPasswordChangeError("New passwords do not match")
+    return
+  }
+
+  if (newPassword.length < 8) {
+    setPasswordChangeError("Password must be at least 8 characters")
+    return
+  }
+
+  if (newPassword === oldPassword) {
+    setPasswordChangeError("New password must be different from current password")
+    return
+  }
+
+  try {
+    setIsLoading(true)
+    setPasswordChangeError("")
+    
+    // Call the password change API
+    await authService.changePassword(oldPassword, newPassword)
+    
+    // Close the modal
+    setShowPasswordChangeModal(false)
+    
+    // Immediately redirect to login with success message
+    navigate("/login", {
+      state: { 
+        successMessage: "Password changed successfully. Please login with your new password." 
+      }
+    })
+  } catch (error: any) {
+    console.error("Password change failed:", error)
+    setPasswordChangeError(error.message || "Failed to change password. Please try again.")
+  } finally {
+    setIsLoading(false)
+  }
+}
 
   const handleSignUp = () => {
     navigate("/account-type")
