@@ -199,7 +199,7 @@ const ScrollToHashElement = () => {
   return null; // This component doesn't render anything
 };
 
-// Main App component that doesn't use Redux hooks
+
 const App: React.FC = () => {
   return (
     <Provider store={store}>
