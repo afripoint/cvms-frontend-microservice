@@ -1,14 +1,14 @@
 "use client"
 
-import { Check, X } from "lucide-react"
+import { Check, X, AlertTriangle, CheckCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Card } from "../../../shared/components/ui"
 import Button from "../../../shared/components/ui/Button"
 import { useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { addReport } from "../../../report/redux/slices/certificateSlice"
-//import {  VehicleCertificateData } from "../../../report/types"
 
+type VerificationStatus = "pending" | "verified" | "failed"
 
 interface SuccessPaymentModalProps {
   isOpen: boolean
@@ -17,15 +17,24 @@ interface SuccessPaymentModalProps {
   transactionId: string
   transactionDate: string
   paymentMethod: string
+  verificationStatus?: VerificationStatus
   items: Array<{
     id: string
     name: string
     quantity: number
     price: number
     type: string
-    vin?: string // Optional VIN from cart item
+    vin?: string
   }>
 }
+
+// Loading Spinner Component
+// const LoadingSpinner = () => (
+//   <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+//     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+//     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+//   </svg>
+// )
 
 export default function SuccessPaymentModal({
   isOpen,
@@ -34,26 +43,25 @@ export default function SuccessPaymentModal({
   transactionId,
   transactionDate,
   paymentMethod,
+  verificationStatus = "pending",
   items = [],
 }: SuccessPaymentModalProps) {
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
   useEffect(() => {
-    // Log transaction details to verify all data is correctly passed
+    if (!isOpen) return
+    
     console.log("Success Modal Transaction Details:", {
       amount,
       transactionId,
+      verificationStatus,
       items,
     })
     
-    // Add reports to the store based on purchased items
     items.forEach((item, index) => {
       if (item.vin || item.id.includes('vin')) {
-        // Extract VIN from item if available, or generate one based on transaction
         const vin = item.vin || `${index+1}`
-        
-        // Add a new report to the store for this purchase
         dispatch(addReport({
           id: Date.now() + index,
           title: item.name,
@@ -61,209 +69,32 @@ export default function SuccessPaymentModal({
           action: 'download',
           downloadUrl: `/api/reports/${transactionId}/download`,
           isCertificate: true,
-          
         }))
       }
     })
-  }, [amount, transactionId, transactionDate, paymentMethod, items, dispatch])
+  }, [isOpen, amount, transactionId, items, verificationStatus, dispatch])
 
-  const  handleDownload = async () => {
-
-    // Find the first item with a VIN to pass to the certificate page
-    // const firstVinItem = items.find(item => item.vin || item.id.includes('vin'))
-    // const vin = firstVinItem?.vin
-
-    
-  //  };
-    
-    // Navigate to certificate page with state parameters
-    // navigate("/certificate", { 
-    //   state: { 
-    //     fromPayment: true,
-    //     transactionId,
-    //     vin
-    //   } 
-    // })
-
-    navigate("/certificate" 
-    
-    )
+  const handleDownload = async () => {
+    navigate("/certificate")
   }
 
-  // const handlePrintReceipt = () => {
-  //   // Create a new window for printing
-  //   const printWindow = window.open('', '_blank', 'width=800,height=600');
-    
-  //   // Check if window was successfully created
-  //   if (!printWindow) {
-  //     console.error("Failed to open print window. Popup might be blocked.");
-  //     alert("Failed to open print window. Please allow popups for this site.");
-  //     return;
-  //   }
-    
-  //   // Generate receipt HTML content
-  //   const receiptContent = `
-  //     <!DOCTYPE html>
-  //     <html>
-  //     <head>
-  //       <title>Payment Receipt - ${transactionId}</title>
-  //       <style>
-  //         body {
-  //           font-family: Arial, sans-serif;
-  //           padding: 20px;
-  //           max-width: 400px;
-  //           margin: 0 auto;
-  //         }
-  //         .receipt-header {
-  //           text-align: center;
-  //           border-bottom: 1px solid #eee;
-  //           padding-bottom: 10px;
-  //           margin-bottom: 15px;
-  //         }
-  //         .logo {
-  //           max-width: 80px;
-  //           margin-bottom: 8px;
-  //         }
-  //         .receipt-title {
-  //           font-size: 18px;
-  //           font-weight: bold;
-  //           margin: 5px 0;
-  //         }
-  //         .transaction-id {
-  //           font-size: 12px;
-  //           color: #666;
-  //           margin-bottom: 15px;
-  //         }
-  //         .amount {
-  //           font-size: 24px;
-  //           font-weight: bold;
-  //           margin: 15px 0;
-  //         }
-  //         .detail-label {
-  //           font-size: 12px;
-  //           color: #666;
-  //           text-transform: uppercase;
-  //           margin-top: 15px;
-  //           margin-bottom: 5px;
-  //         }
-  //         .detail-row {
-  //           display: flex;
-  //           justify-content: space-between;
-  //           margin-bottom: 8px;
-  //           font-size: 14px;
-  //         }
-  //         .detail-value {
-  //           font-weight: 500;
-  //         }
-  //         .items-section {
-  //           margin: 15px 0;
-  //           border-bottom: 1px solid #eee;
-  //           padding-bottom: 15px;
-  //         }
-  //         .footer {
-  //           text-align: center;
-  //           font-size: 12px;
-  //           color: #666;
-  //           margin-top: 20px;
-  //           border-top: 1px solid #eee;
-  //           padding-top: 15px;
-  //         }
-  //         @media print {
-  //           body {
-  //             print-color-adjust: exact;
-  //             -webkit-print-color-adjust: exact;
-  //           }
-  //         }
-  //       </style>
-  //     </head>
-  //     <body>
-  //       <div class="receipt-header">
-  //         <img src="/images/logo.png" alt="Customs Verification" class="logo" />
-  //         <div class="receipt-title">Customs Verification Management System</div>
-  //         <div class="transaction-id">Receipt #${transactionId}</div>
-  //       </div>
-        
-  //       <div class="detail-label">Status</div>
-  //       <div class="amount">Payment Successful!</div>
-        
-  //       <div class="detail-label">Amount</div>
-  //       <div class="amount">₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-        
-  //       <div class="items-section">
-  //         <div class="detail-label">Items</div>
-  //         ${items.map(item => `
-  //           <div class="detail-row">
-  //             <span>${item.name} (${item.quantity})</span>
-  //             <span class="detail-value">₦${(item.price * item.quantity).toLocaleString("en-NG")}.00</span>
-  //           </div>
-  //         `).join('')}
-          
-  //         <div class="detail-row" style="margin-top: 10px;">
-  //           <span><strong>Total Items</strong></span>
-  //           <span class="detail-value"><strong>₦${totalItemsPrice.toLocaleString("en-NG")}.00</strong></span>
-  //         </div>
-  //       </div>
-        
-  //       <div class="detail-label">Transaction Details</div>
-  //       <div class="detail-row">
-  //         <span>Amount Paid</span>
-  //         <span class="detail-value">₦${amount.toLocaleString("en-NG")}.00</span>
-  //       </div>
-  //       <div class="detail-row">
-  //         <span>Payment Method</span>
-  //         <span class="detail-value">${paymentMethod}</span>
-  //       </div>
-  //       <div class="detail-row">
-  //         <span>Transaction ID</span>
-  //         <span class="detail-value">#${transactionId}</span>
-  //       </div>
-  //       <div class="detail-row">
-  //         <span>Transaction Date</span>
-  //         <span class="detail-value">${transactionDate}</span>
-  //       </div>
-        
-  //       <div class="footer">
-  //         Thank you for your payment.<br>
-  //         For any questions, please contact support.
-  //       </div>
-        
-  //       <script>
-  //         // Auto print and close
-  //         window.onload = function() {
-  //           window.print();
-  //           // Uncomment the line below if you want the window to close after printing
-  //           // window.setTimeout(function() { window.close(); }, 500);
-  //         }
-  //       </script>
-  //     </body>
-  //     </html>
-  //   `;
-    
-  //   // Write content to the new window
-  //   printWindow.document.write(receiptContent);
-  //   printWindow.document.close();
-    
-  //   console.log("Printing receipt for transaction:", transactionId);
-  // };
-
-
   const handlePrintReceipt = () => {
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
     
-    // Check if window was successfully created
     if (!printWindow) {
-      console.error("Failed to open print window. Popup might be blocked.");
-      alert("Failed to open print window. Please allow popups for this site.");
-      return;
+      console.error("Failed to open print window. Popup might be blocked.")
+      alert("Failed to open print window. Please allow popups for this site.")
+      return
     }
     
+    const totalItemsPrice = items.reduce((total, item) => total + item.price * item.quantity, 0)
+
     // Generate receipt HTML content
     const receiptContent = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>custom payment reciept</title>
+        <title>Payment Receipt</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -273,7 +104,6 @@ export default function SuccessPaymentModal({
             position: relative;
             z-index: 1;
           }
-          /* Watermark styles */
           .watermark {
             position: fixed;
             top: -6;
@@ -288,15 +118,13 @@ export default function SuccessPaymentModal({
           }
           .watermark img {
             opacity: 0.04;
-            width: 120%;  /* Increased from 80% */
-            max-width: 600px;  /* Increased from 350px */
-    
+            width: 120%;
+            max-width: 600px;
           }
           .receipt-header {
             text-align: center;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
-           
           }
           .logo {
             max-width: 80px;
@@ -307,13 +135,7 @@ export default function SuccessPaymentModal({
             margin: 5px 0;
             margin-bottom: 80px;
           }
-          .transaction-id {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 15px;
-          }
           .amount {
-          display-flex: between;
             font-size: 24px;
             font-weight: bold;
             margin: 15px 0;
@@ -324,7 +146,6 @@ export default function SuccessPaymentModal({
             text-transform: uppercase;
             margin-top: 15px;
             margin-bottom: 5px;
-            
           }
           .detail-row {
             display: flex;
@@ -340,14 +161,6 @@ export default function SuccessPaymentModal({
             border-bottom: 1px solid #eee;
             padding-bottom: 15px;
           }
-          .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-          }
           @media print {
             body {
               print-color-adjust: exact;
@@ -361,7 +174,6 @@ export default function SuccessPaymentModal({
         </style>
       </head>
       <body>
-        <!-- Watermark -->
         <div class="watermark">
           <img src="/images/logo.png" alt="Official Watermark" />
         </div>
@@ -369,13 +181,10 @@ export default function SuccessPaymentModal({
         <div class="receipt-header">
           <img src="/images/logo.png" alt="Customs Verification" class="logo" />
           <div class="receipt-title">Customs Verification Management System</div>
-          
         </div>
         
         <div class="detail-label">Status</div>
         <div class="amount">Payment Successful!</div>
-        
-        
         
         <div class="items-section">
           <div class="detail-label">Items</div>
@@ -410,39 +219,61 @@ export default function SuccessPaymentModal({
           <span class="detail-value">${transactionDate}</span>
         </div>
         
-        
-        
         <script>
-          // Auto print and close
           window.onload = function() {
             window.print();
-            // Uncomment the line below if you want the window to close after printing
-            // window.setTimeout(function() { window.close(); }, 500);
           }
         </script>
       </body>
       </html>
     `;
     
-    // Write content to the new window
     printWindow.document.write(receiptContent);
     printWindow.document.close();
     
     console.log("Printing receipt for transaction:", transactionId);
-  };
+  }
+
   const handleCloseModal = () => {
-    // This will trigger the onClose function in the parent component
-    // which will clear the cart
     onClose()
   }
 
-  // Calculate total quantity
+  // Calculate totals
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
-
-  // Calculate total item price
   const totalItemsPrice = items.reduce((total, item) => total + item.price * item.quantity, 0)
 
-  return isOpen ? (
+  // Render verification status indicator
+  const renderVerificationStatus = () => {
+    switch (verificationStatus) {
+      case 'pending':
+        // return (
+        //   <div className="flex items-center justify-center text-yellow-600 bg-yellow-50 p-2 rounded-md mb-3">
+        //     <LoadingSpinner />
+        //     <span className="text-xs">Verifying payment...</span>
+        //   </div>
+        // )
+      case 'verified':
+        return (
+          <div className="flex items-center justify-center text-green-600 bg-green-50 p-2 rounded-md mb-3">
+            <CheckCircle size={16} className="mr-2" />
+            <span className="text-xs">Payment verified ✓</span>
+          </div>
+        )
+      case 'failed':
+        return (
+          <div className="flex items-center justify-center text-red-600 bg-red-50 p-2 rounded-md mb-3">
+            <AlertTriangle size={16} className="mr-2" />
+            <span className="text-xs">Verification pending - Contact support</span>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 pb-2 mt-16">
       <Card className="bg-white w-full max-w-md relative">
         <button
@@ -462,6 +293,9 @@ export default function SuccessPaymentModal({
           </div>
 
           <h2 className="text-base font-medium mt-3">Payment Successful!</h2>
+
+          {/* Verification Status */}
+          {renderVerificationStatus()}
 
           <div className="w-full text-center mt-3">
             <p className="text-xs text-gray-500">Amount</p>
@@ -510,19 +344,29 @@ export default function SuccessPaymentModal({
         </div>
 
         <div className="grid grid-cols-2 gap-2 p-3">
+
           <Button variant="outline" className="w-full text-xs py-2" onClick={handlePrintReceipt}>
             Print Receipt
           </Button>
-          <Button className="w-full bg-green-500 hover:bg-green-600 text-white text-xs py-2" onClick={handleDownload}>
+          <Button 
+            className="w-full bg-green-500 hover:bg-green-600 text-white text-xs py-2" 
+            onClick={handleDownload}
+          >
             Proceed
           </Button>
+          {/* <Button variant="outline" className="w-full text-xs py-2" onClick={handlePrintReceipt}>
+            Print Receipt
+          </Button>
+          <Button 
+            className="w-full bg-green-500 hover:bg-green-600 text-white text-xs py-2" 
+            onClick={handleDownload}
+            disabled={verificationStatus === 'pending'}
+          >
+            {verificationStatus === 'pending' ? 'Verifying...' : 'Proceed'}
+            
+          </Button> */}
         </div>
       </Card>
     </div>
-  ) : null
+  ) 
 }
-
-
-
-
-

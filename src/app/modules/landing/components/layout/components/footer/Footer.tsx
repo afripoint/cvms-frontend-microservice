@@ -62,19 +62,19 @@ const Footer: React.FC = () => {
         </section>
 
         {/* Navigation sections */}
-        <section className="w-full md:w-3/4 lg:w-4/5 md:ml-5 lg:ml-24">
+        <section className="w-full md:w-3/4 lg:w-4/5 md:ml-5 lg:ml-48">
           <div className="w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-5">
               
-              <div className="w-full">
+              <div className="w-full ml-10">
                 <FooterNavSection {...footerNavSections.hotlines} />
               </div>
               
-              <div className="w-full">
+              <div className="w-full mr-">
                 <FooterNavSection {...footerNavSections.supportAdresses} />
               </div>
               
-              <div className="w-full">
+              <div className="w-full ml-12 ">
                 <FooterNavSection {...footerNavSections.resources} />
               </div>
               

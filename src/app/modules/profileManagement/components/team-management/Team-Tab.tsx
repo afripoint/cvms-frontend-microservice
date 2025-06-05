@@ -151,11 +151,26 @@ const toggleError = useSelector((state: RootState) => state.settings.errors.togg
   }
 
   const handleDeleteMember = (member: TeamMember) => {
-    setCurrentMember(member)
-    setConfirmDeleteId(member.id)
-  }
+  setCurrentMember(member);
+  setConfirmDeleteId(member.id);
+};
 
   
+
+// const confirmDelete = async () => {
+//   if (!currentMember?.slug) {
+//     console.error("Cannot toggle status: Missing slug");
+//     return;
+//   }
+
+//   try {
+//     await dispatch(toggleSubAccountStatus(currentMember.slug));
+//     await dispatch(fetchSubAccounts()); // Refresh the list
+//     setConfirmDeleteId(null);
+//   } catch (error) {
+//     console.error("Failed to toggle member status:", error);
+//   }
+// };
 
 const confirmDelete = async () => {
   if (!currentMember?.slug) {
@@ -171,7 +186,6 @@ const confirmDelete = async () => {
     console.error("Failed to toggle member status:", error);
   }
 };
-
 
   const handleSubmit = async (memberData: Omit<TeamMember, "id" | "initials" | "status" | "lastLogin">) => {
     try {

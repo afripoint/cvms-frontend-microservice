@@ -149,6 +149,10 @@ import TrackingDetails from './app/pages/status-tracker/tracking-details';
 import PrivacyPolicy from './app/pages/Privacy';
 import TermsAndConditions from './app/pages/Terms-and-Conditions';
 import Faq from './app/pages/Faq';
+import VerifyPayment from './app/modules/payment/components/modal/Verify-Payment';
+import UserGuidePage from './app/pages/Guide';
+import CookiePolicy from './app/pages/Cookie-Policy';
+import Article from './app/modules/landing/components/layout/components/Articles';
 
 // Lazy load components
 const Certificate = lazy(() => import('./app/modules/report/pages/CertificatePage'));
@@ -221,6 +225,11 @@ const AppContent: React.FC = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-use" element={< TermsAndConditions/>} />
           <Route path="/faq" element={< Faq/>} />
+          <Route path="/user-guide" element={<UserGuidePage/>} />
+          <Route path="/cookie-policy" element={<CookiePolicy/>} />
+          <Route path="/accredited-agencies" element={<Article/>} /> 
+
+          
 
           <Route path="/account-type" element={<AccountType />} />
           <Route path="/signup" element={<SignUpForm />} />
@@ -251,6 +260,8 @@ const AppContent: React.FC = () => {
           <Route path="/payment-method" element={<PaymentMethodPage />} />
           <Route path="/certificate" element={<Certificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificatePage />} />
+          <Route path="/verify-payment" element={<VerifyPayment/>} />
+
           
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,7 +1,6 @@
-
-
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Report, ReportState } from '../../types';
+import { vinApiService } from '../../services/vinVehicleService';
 
 const initialState: ReportState = {
   reports: [],
@@ -9,52 +8,35 @@ const initialState: ReportState = {
   error: null,
 };
 
-// Async thunk for fetching reports
 export const fetchReports = createAsyncThunk(
   'reports/fetchReports',
   async (_, { rejectWithValue }) => {
     try {
-      const accesstoken = localStorage.getItem("access_token");
-      if (!accesstoken) {
-        throw new Error('No access token found');
-      }
+      const response = await vinApiService.getVinCheck();
       
-      const response = await fetch('https://afridev.com.ng/vin/search-history/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accesstoken}`
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch reports: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Transform the API response to match our Report type
-      if (data?.Search_histories) {
-        return data.Search_histories.map((record: any) => ({
-          id: record.id || Math.random().toString(36).substr(2, 9),
+      if (response?.results && Array.isArray(response.results)) {
+        return response.results.map((record): Report => ({
+          id: record.ref_number || Math.random().toString(36).substr(2, 9),
           title: 'VIN Search',
-          vin: record.vin?.vin || record.slug || '',
+          vin: record.vin,
           action: 'download',
-          downloadUrl: `/api/reports/${record.id}/download`,
+          downloadUrl: `/api/reports/${record.ref_number}/download`,
           isCertificate: true,
           vehicleDetails: {
-            brand: record.vin?.brand || 'Not available',
-            model: record.vin?.vehicle_type || 'Not available',
-            vehicle_year: record.vin?.vehicle_year || 'Not available',
+            brand: record.make || 'Not available',
+            model: record.model || 'Not available',
+            vehicle_year: record.vehicle_year || 'Not available',
             color: 'Not available',
-            chassis_number: record.vin?.vin || ''
+            chassis_number: record.vin
           }
         }));
       }
       
       return [];
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch reports');
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Failed to fetch reports'
+      );
     }
   }
 );
@@ -62,10 +44,8 @@ export const fetchReports = createAsyncThunk(
 // Async thunk for downloading a report
 export const downloadReport = createAsyncThunk(
   'reports/downloadReport',
-  async (reportId: number, { rejectWithValue }) => {
+  async (reportId: number | string, { rejectWithValue }) => { // Updated to accept string or number
     try {
-      // This should be replaced with actual download functionality
-      // For now we just return the ID to acknowledge the action
       return reportId;
     } catch (error) {
       return rejectWithValue(`Failed to download report ${reportId}`);
@@ -76,10 +56,8 @@ export const downloadReport = createAsyncThunk(
 // Async thunk for downloading a certificate
 export const downloadCertificate = createAsyncThunk(
   'reports/downloadCertificate',
-  async (reportId: number, { rejectWithValue }) => {
+  async (reportId: number | string, { rejectWithValue }) => { // Updated to accept string or number
     try {
-      // This should be replaced with actual download functionality
-      // For now we just return the ID to acknowledge the action
       return reportId;
     } catch (error) {
       return rejectWithValue(`Failed to download certificate ${reportId}`);

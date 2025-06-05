@@ -394,62 +394,72 @@ const authService = {
     }
   },
 
-  changePassword: async (oldPassword: string, newPassword: string): Promise<any> => {
-    try {
-      console.log("Changing password")
+  changePassword: async (
+  oldPassword: string, 
+  newPassword: string,
+  options?: { updateSubUserStatus?: boolean }
+): Promise<any> => {
+  try {
+    console.log("Changing password", options)
 
-      // Get token
-      const token = getAuthToken()
+    // Get token
+    const token = getAuthToken()
 
-      if (!token) {
-        throw new Error("User is not authenticated. Please login first.")
-      }
-
-      console.log("Using token for changePassword:", token ? `${token.substring(0, 10)}...` : "No token found")
-
-      // Create request headers with proper Authorization
-      const headers: HttpHeaders = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-
-      // Log headers for debugging
-      console.log("Request headers:", headers)
-
-      // Use direct axios call to ensure headers are set properly
-      const response = await axios({
-        method: "patch",
-        url: `${API_URL}/change-password/`,
-        headers: headers,
-        data: {
-          old_password: oldPassword,
-          new_password: newPassword,
-          confirm_new_password: newPassword,
-        },
-        withCredentials: true,
-      })
-
-      console.log("Password changed successfully")
-      return response.data
-    } catch (error: any) {
-      // Enhanced error logging
-      console.error("Password change error:", error)
-      if (error.response) {
-        console.error("Response status:", error.response.status)
-        console.error("Response data:", error.response.data)
-
-        // Check for specific error types
-        if (error.response.status === 403) {
-          throw new Error("Permission denied. You may not have the right permissions to change the password.")
-        } else if (error.response.status === 401) {
-          throw new Error("Authentication failed. Your session may have expired.")
-        }
-      }
-
-      throw error.response?.data?.detail ? new Error(error.response.data.detail) : error
+    if (!token) {
+      throw new Error("User is not authenticated. Please login first.")
     }
-  },
 
+    console.log("Using token for changePassword:", token ? `${token.substring(0, 10)}...` : "No token found")
+
+    // Create request headers with proper Authorization
+    const headers: HttpHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    }
+
+    // Include options in the request data if provided
+    const requestData: any = {
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_new_password: newPassword,
+    }
+
+    if (options?.updateSubUserStatus) {
+      requestData.update_sub_user_status = true
+    }
+
+    // Log headers for debugging
+    console.log("Request headers:", headers)
+
+    // Use direct axios call to ensure headers are set properly
+    const response = await axios({
+      method: "patch",
+      url: `${API_URL}/change-password/`,
+      headers: headers,
+      data: requestData,
+      withCredentials: true,
+    })
+
+    console.log("Password changed successfully")
+    return response.data
+  } catch (error: any) {
+    // Enhanced error logging
+    console.error("Password change error:", error)
+    if (error.response) {
+      console.error("Response status:", error.response.status)
+      console.error("Response data:", error.response.data)
+
+      // Check for specific error types
+      if (error.response.status === 403) {
+        throw new Error("Permission denied. You may not have the right permissions to change the password.")
+      } else if (error.response.status === 401) {
+        throw new Error("Authentication failed. Your session may have expired.")
+      }
+    }
+
+    throw error.response?.data?.detail ? new Error(error.response.data.detail) : error
+  }
+},
   resendOtp: async (email: string, deliveryMethod: "email" | "sms"): Promise<any> => {
     try {
       console.log("Resending OTP via", deliveryMethod, "to:", email)
@@ -637,101 +647,7 @@ const authService = {
     }
   },
 
-  // Add to authService object in authService.ts
-// createSubAccount: async (subAccountData: {
-//   email: string;
-//   first_name: string;
-//   last_name: string;
-//   phone_number: string;
-//   role: string;
-// }): Promise<any> => {
-//   try {
-//     console.log("Creating sub-account with data:", subAccountData);
-    
-//     const token = getAuthToken();
-//     if (!token) {
-//       throw new Error("User is not authenticated. Please login first.");
-//     }
-
-//     const response = await axios({
-//       method: "post",
-//       url: `${API_URL}/create/sub-account/`,
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//       data: subAccountData,
-//       withCredentials: true,
-//     });
-
-//     console.log("Sub-account created successfully:", response.data);
-//     return response.data;
-//   } catch (error: any) {
-//     console.error("Sub-account creation error:", error);
-    
-//     if (error.response?.status === 403) {
-//       throw new Error("You don't have permission to create sub-accounts.");
-//     } else if (error.response?.data?.detail) {
-//       throw new Error(error.response.data.detail);
-//     }
-    
-//     throw error;
-//   }
-// },
-
-// Add to authService object in authService.ts
-// createSubAccount: async (subAccountData: {
-//   first_name: string;
-//   last_name: string;
-//   email: string;
-//   phone?: string;
-//   role?: string;
-// }): Promise<{ id: number }> => {
-//   try {
-//     console.log("Creating sub-account with data:", subAccountData);
-    
-//     const token = getAuthToken();
-//     if (!token) {
-//       throw new Error("User is not authenticated. Please login first.");
-//     }
-
-//     const response = await axios({
-//       method: "post",
-//       url: `${API_URL}/create/sub-account/`,
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//       data: {
-//         first_name: subAccountData.first_name,
-//         last_name: subAccountData.last_name,
-//         email: subAccountData.email,
-//         ...(subAccountData.phone && { phone: subAccountData.phone }),
-//         ...(subAccountData.role && { role: subAccountData.role })
-//       },
-//       withCredentials: true,
-//     });
-
-//     console.log("Sub-account created successfully:", response.data);
-//     return response.data;
-//   } catch (error: unknown) {
-//     console.error("Sub-account creation error:", error);
-    
-//     if (axios.isAxiosError(error)) {
-//       if (error.response?.status === 403) {
-//         throw new Error("You don't have permission to create sub-accounts.");
-//       } else if (error.response?.data?.detail) {
-//         throw new Error(error.response.data.detail);
-//       } else if (error.response?.data?.message) {
-//         throw new Error(error.response.data.message);
-//       }
-//     }
-    
-//     throw new Error("Failed to create sub-account. Please try again.");
-//   }
-// },
-
-// Add to authService object in authService.ts
+ 
 createSubAccount: async (subAccountData: {
   first_name: string;
   last_name: string;
@@ -766,56 +682,7 @@ createSubAccount: async (subAccountData: {
     throw new Error("Failed to create sub-account");
   }
 },
-  // logout: async () => {
-  //   try {
-  //     console.log("Logging out user")
-
-  //     // Get token for logout request
-  //     const token = getAuthToken()
-
-  //     if (token) {
-  //       try {
-  //         await axios({
-  //           method: "post",
-  //           url: `${API_URL}/logout/`,
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //           withCredentials: true,
-  //         })
-  //       } catch (logoutError) {
-  //         console.warn("Logout API call failed, but will continue with local logout:", logoutError)
-  //       }
-  //     }
-
-  //     console.log("Clearing local storage data")
-
-  //     // Clear stored user data and tokens
-  //     localStorage.removeItem("authToken")
-  //     localStorage.removeItem(StorageKeys.USER_DATA)
-  //     localStorage.removeItem(StorageKeys.TOKEN_DATA)
-  //     localStorage.removeItem("userPhoneNumber")
-
-  //     // Remove auth header
-  //     delete authAxios.defaults.headers.common["Authorization"]
-
-  //     console.log("User logged out successfully")
-  //   } catch (error: any) {
-  //     console.error("Logout error:", error.response?.data || error.message)
-
-  //     // Still remove auth header and clear storage even if API call fails
-  //     delete authAxios.defaults.headers.common["Authorization"]
-  //     localStorage.removeItem("authToken")
-  //     localStorage.removeItem(StorageKeys.USER_DATA)
-  //     localStorage.removeItem(StorageKeys.TOKEN_DATA)
-  //     localStorage.removeItem("userPhoneNumber")
-
-  //     throw error
-  //   }
-  // },
-
-  // Add this to the authService object in authService.ts
+ 
 listSubAccounts: async (): Promise<TeamMember[]> => {
   try {
     const token = getAuthToken();
@@ -832,7 +699,8 @@ listSubAccounts: async (): Promise<TeamMember[]> => {
       role: member.role || 'Team Member',
       status: member.is_active ? 'Active' : 'Inactive',
       initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
-      lastLogin: member.last_login || 'Never'
+      lastLogin: member.last_login || 'Never',
+      slug: member.slug 
     }));
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -899,19 +767,7 @@ updateSubAccount: async (slug: string, updateData: {
   }
 },
 
-// Toggle sub-account status (activate/deactivate)
-// toggleSubAccountStatus: async (slug: string): Promise<{ is_active: boolean }> => {
-//   try {
-//     const response = await authAxios.patch(`/deactivate-activate/sub-account/${slug}/`);
-//     return response.data;
-//   } catch (error: unknown) {
-//     if (axios.isAxiosError(error)) {
-//       throw new Error(error.response?.data?.message || "Failed to toggle sub-account status");
-//     }
-//     throw new Error("Failed to toggle sub-account status");
-//   }
-// },
- // Toggle sub-account status (activate/deactivate)
+
 toggleSubAccountStatus: async (slug: string): Promise<{ is_active: boolean }> => {
   try {
     console.log("Toggling status for sub-account:", slug);

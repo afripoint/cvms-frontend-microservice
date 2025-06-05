@@ -22,97 +22,20 @@ const initialState: SettingsState = {
     vinSearches: 23,
     vinSearchLimit: '(12 left)',
     transactions: [
-      { 
-        id: 1, 
-        type: 'Silver plan subscription purchase', 
-        amount: '₦25,000', 
-        date: '12/04/2025, 10:20 AM', 
-        status: 'Successful' 
-      },
-      { 
-        id: 2, 
-        type: 'Silver plan subscription purchase', 
-        amount: '₦25,000', 
-        date: '12/04/2025, 10:20 AM', 
-        status: 'Successful' 
-      },
-      { 
-        id: 3, 
-        type: 'Silver plan subscription purchase', 
-        amount: '₦25,000', 
-        date: '12/04/2025, 10:20 AM', 
-        status: 'Failed' 
-      }
+     
+      
     ]
   },
   historyData: [
-    { 
-      id: 1, 
-      type: 'VIN Search - 87153873877901313', 
-      amount: '₦25,000', 
-      date: '12/04/2025, 10:20 AM',
-      status: 'Successful'
-    },
-    { 
-      id: 2, 
-      type: 'VIN Search - 87153873877901313', 
-      amount: '₦25,000', 
-      date: '12/04/2025, 10:20 AM',
-      status: 'Successful'
-    },
-    { 
-      id: 3, 
-      type: 'Accredify', 
-      amount: '₦25,000', 
-      date: '12/04/2025, 10:20 AM',
-      status: 'Successful'
-    },
-    { 
-      id: 4, 
-      type: 'VIN Search - 87153873877901313', 
-      amount: '₦25,000', 
-      date: '12/04/2025, 10:20 AM',
-      status: 'Failed'
-    },
-    { 
-      id: 5, 
-      type: 'VIN Search - 87153873877901313', 
-      amount: '₦25,000', 
-      date: '12/04/2025, 10:20 AM',
-      status: 'Failed'
-    }
+   
+    
+    
+    
   ],
   teamsData: [
-    {
-      id: 1,
-      name: 'John Smith',
-      role: 'Administrator',
-      email: 'john.smith@example.com',
-      phone_number: '803 456 7890',
-      status: 'Active',
-      lastLogin: 'Today, 10:30 AM',
-      initials: 'JS'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      role: 'Team Member',
-      email: 'sarah.johnson@example.com',
-      phone_number: '901 234 5678',
-      status: 'Active',
-      lastLogin: 'Yesterday, 2:45 PM',
-      initials: 'SJ'
-    },
-    {
-      id: 3,
-      name: 'Michael Brown',
-      role: 'Team Member',
-      email: 'michael.brown@example.com',
-      phone_number: '703 890 1234',
-      status: 'Inactive',
-      lastLogin: 'Last week',
-      initials: 'MB'
-    }
+    
+    
+    
   ],
   ninSubmitted: false,
   cacSubmitted: false,

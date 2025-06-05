@@ -1,126 +1,143 @@
-import { useCallback, useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
-import { RootState, AppDispatch } from "../../../core/store";
-import { fetchReports } from "../redux/slices/certificateSlice";
+import { RootState} from "../../../core/store";
+// import { fetchReports } from "../redux/slices/certificateSlice";
 import { Footer, Header } from "../../landing/components/layout";
 import { generateCertificate } from "../services/certificateService";
-import LoadingErrorComponent from "../components/report/LoadingErrorComponent";
+// import LoadingErrorComponent from "../components/report/LoadingErrorComponent";
 import ContactSupportModal from "../components/ContactSupportModal";
+import { vinApiService } from "../services/vinVehicleService";
 
-
-interface SearchHistory {
-  user: {
-    full_name: string;
-  };
-  vin: VinInfo | null;
-  cert_num: string;
+interface ApiVehicleResult {
+  vin: string;
+  make?: string;
+  model?: string;
+  vehicle_year?: string;
+  engine_type?: string;
+  vreg?: string;
+  vehicle_type?: string;
+  origin_country?: string;
+  payment_status?: string;
+  ref_number: string;
   status: string;
-  qr_code_base64: string;
-  slug: string;
-  created_at: string;
 }
 
-interface VinInfo {
-  vin: string | null;
-  brand: string | null;
-  vehicle_year: string | null;
-  vehicle_type: string | null;
-  payment_status: string | null;
-  origin_country: string | null;
+interface ApiResponse {
+  message: string;
+  results: ApiVehicleResult[];
 }
+
+// interface VinItem {
+//   id: string;
+// }
 
 const Certificate = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  // const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const { reports } = useSelector((state: RootState) => state.reports);
-  const { user } = useSelector((state: RootState) => state.auth);
 
-  // State to track if certificate was generated automatically
   const [certificateGenerated, setCertificateGenerated] = useState(false);
-  const [allCertData, setAllCertData] = useState<SearchHistory[]>([]);
+  const [allCertData, setAllCertData] = useState<ApiVehicleResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // State for responsive view options
   const [showDetails, setShowDetails] = useState(true);
-  // State for contact support modal
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const hasFetched = useRef(false)
 
-  useEffect(() => {
-    dispatch(fetchReports());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchReports());
+  // }, [dispatch]);
 
   // Auto-generate certificate if coming from payment success
   useEffect(() => {
     const fromPayment = location.state?.fromPayment;
     const vinFromPayment = location.state?.vin;
+    const { items } = location.state || { items: [] };
 
     if (fromPayment && vinFromPayment && !certificateGenerated) {
       const targetReport = reports.find((r) => r.vin === vinFromPayment);
       if (targetReport) {
-        handleDownloadCertificate(targetReport.vin);
+        handleDownloadCertificate(items);
         setCertificateGenerated(true);
       }
     }
   }, [reports, location, certificateGenerated]);
 
-  const handleDownloadAll = () => {
-    reports.forEach((report) => {
-      if (report.downloadUrl) {
-        const link = document.createElement("a");
-        link.href = report.downloadUrl;
-        link.setAttribute(
-          "download",
-          `${report.title.replace(/\s+/g, "-")}-${report.vin}.pdf`
-        );
-        link.setAttribute("target", "_blank");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+  const handleDownloadAll = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Filter only successful certificates
+      const successfulCerts = allCertData.filter(
+        (cert) => cert.status?.toLowerCase() === "successful"
+      );
+
+      if (successfulCerts.length === 0) {
+        setError("No successful certificates available for download.");
+        return;
       }
-    });
+
+      // Get VIN list from successful certificates
+      // const vinList = successfulCerts.map(cert => cert.vin);
+      
+      // Get detailed information for certificate generation
+      // const detailedData = await vinApiService.getVinDetails(vinList);
+
+      // Generate certificate for each successful VIN
+      for (const cert of successfulCerts) {
+        const vehicleRecord = cert
+      
+
+        // if (!vehicleRecord) {
+        //   console.warn(`Vehicle record not found for VIN: ${cert.vin}`);
+        //   continue;
+        // }
+
+        const certificateData = {
+          vin: vehicleRecord.vin,
+          makeModel: vehicleRecord.make || "Not available",
+          model: vehicleRecord.model || "Not available",
+          year: vehicleRecord.vehicle_year || "Not available",
+          certificateNumber: vehicleRecord.ref_number,
+          ownerName: "Vehicle Owner", // Replace with actual user data if available
+          ownerAddress: "No 16B Alimini Street Ipaja",
+          date: new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          qrCodeBase64: "", // Add QR code if available
+        };
+
+        // Add a small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+        generateCertificate(certificateData);
+      }
+
+      console.log(`Successfully initiated download for ${successfulCerts.length} certificates`);
+      
+    } catch (error) {
+      console.error("Error downloading all certificates:", error);
+      setError("Failed to download certificates. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Fetching all certificate data
   const certificateFetching = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const accesstoken = localStorage.getItem("access_token");
-      if (!accesstoken) {
-        throw new Error("No access token found");
-      }
+      
+      const resData: ApiResponse = await vinApiService.getVinCheck();
+      console.log("getVinCheck", resData)
 
-      const response = await fetch(
-        "http://cvms-api.afripointdev.com/vin/search-history/",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accesstoken}`,
-          },
-        }
-      );
+      
+      if (resData?.results && Array.isArray(resData.results)) {
+        setAllCertData(resData.results);
+      } 
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch search history: ${response.status}`);
-      }
-
-      const resData = await response.json();
-
-      if (resData?.Search_histories) {
-        // Sort the search histories by creation date in descending order (newest first)
-        const sortedHistories = [...resData.Search_histories].sort((a, b) => {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
-          return dateB - dateA; // Descending order
-        });
-
-        setAllCertData(sortedHistories);
-      } else {
-        console.warn("No Search_histories found in response");
-        setAllCertData([]);
-      }
     } catch (error) {
       console.error(
         "Error fetching certificate data:",
@@ -134,66 +151,51 @@ const Certificate = () => {
   }, []);
 
   useEffect(() => {
-    certificateFetching();
-  }, [certificateFetching]);
+    if(!hasFetched.current){
+      hasFetched.current = true
+      certificateFetching();
+    }
+    
+  }, []);
 
-  const handleDownloadCertificate = async (vin: string) => {
-    try {
+const handleDownloadCertificate = async (cert: ApiVehicleResult) => {   
+   try {
       setIsLoading(true);
-      const accesstoken = localStorage.getItem("access_token");
-      if (!accesstoken) {
-        throw new Error("No access token found");
-      }
+      
+      // const vinList = items.map(item => item.id);
+      // const detailedData = await vinApiService.getVinDetails(vinList);
+      // console.log("getVinDetails", detailedData);
+      
+        const vehicleRecord = cert
+        
 
-      const response = await fetch(
-        "http://cvms-api.afripointdev.com/vin/search-history/",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accesstoken}`,
-          },
-        }
-      );
+        // const vehicleRecord = detailedData.results.find(
+        //   (record) => record.vin === vin
+        // );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch search history");
-      }
+        // if (!vehicleRecord) {
+        //   console.warn(`Vehicle record not found for VIN: ${vin}`);
+        //   continue;
+        // }
 
-      const resData = await response.json();
+        const certificateData = {
+          vin: vehicleRecord.vin,
+          makeModel: vehicleRecord.make || "Not available",
+          model: vehicleRecord.model || "Not available",
+          year: vehicleRecord.vehicle_year || "Not available",
+          certificateNumber: vehicleRecord.ref_number,
+          ownerName: "Vehicle Owner", // Replace with actual user data if available
+          ownerAddress: "No 16B Alimini Street Ipaja",
+          date: new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          qrCodeBase64: "", // Add QR code if available
+        };
 
-      const vehicleRecord = resData.Search_histories.find(
-        (record: SearchHistory) => {
-          return record.vin?.vin === vin || record.slug?.includes(vin);
-        }
-      );
-
-      if (!vehicleRecord) {
-        throw new Error("Vehicle record not found for VIN: " + vin);
-      }
-
-      const userData = {
-        fullName: vehicleRecord.user.full_name,
-        address: user?.address || "",
-      };
-
-      const certificateData = {
-        vin: vehicleRecord.vin?.vin || vin,
-        makeModel: vehicleRecord.vin?.brand || "",
-        model: vehicleRecord.vin?.make || "Ford Mustang",
-        year: vehicleRecord.vin?.vehicle_year || "",
-        certificateNumber: vehicleRecord.cert_num || "",
-        ownerName: userData.fullName,
-        ownerAddress: userData.address || "No 16B Alimini Street Ipaja",
-        date: new Date().toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
-        qrCodeBase64: vehicleRecord.qr_code_base64 || "",
-      };
-
-      generateCertificate(certificateData);
+        generateCertificate(certificateData);
+      // }
     } catch (error) {
       console.error("Error generating certificate:", error);
       setError("Failed to generate certificate. Please try again later.");
@@ -202,48 +204,54 @@ const Certificate = () => {
     }
   };
 
-  const dismissError = () => {
-    setError(null);
-  };
+  // const dismissError = () => {
+  //   setError(null);
+  // };
 
-  // Toggle details view for responsive design
+  console.log(error)
+
   const toggleDetails = () => {
     setShowDetails(!showDetails);
   };
 
-  // Format date for different screen sizes
-  const formatDate = (dateString: string, isMobile: boolean = false) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    if (isMobile) {
-      return date.toLocaleDateString("en-US");
-    }
-    return (
-      date.toLocaleDateString("en-US") +
-      " " +
-      date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-    );
-  };
+  // const formatDate = (dateString: string, isMobile: boolean = false) => {
+  //   if (!dateString) return "-";
+  //   const date = new Date(dateString);
+  //   if (isMobile) {
+  //     return date.toLocaleDateString("en-US");
+  //   }
+  //   return (
+  //     date.toLocaleDateString("en-US") +
+  //     " " +
+  //     date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+  //   );
+  // };
 
-  // Open contact support modal
   const openContactModal = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsContactModalOpen(true);
   };
 
+  const getSuccessfulCertificatesCount = () => {
+    return allCertData.filter(
+      (cert) => cert.status?.toLowerCase() === "successful"
+    ).length;
+  };
+
+  const successfulCount = getSuccessfulCertificatesCount();
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
-      <LoadingErrorComponent
+      {/* <LoadingErrorComponent
         isLoading={isLoading}
         error={error}
         onDismissError={dismissError}
-      />
+      /> */}
 
-      {/* Contact Support Modal */}
-      <ContactSupportModal 
-        isOpen={isContactModalOpen} 
-        onClose={() => setIsContactModalOpen(false)} 
+      <ContactSupportModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
       />
 
       <main className="flex-grow container mx-auto px-4 py-4 mb-16">
@@ -306,39 +314,39 @@ const Certificate = () => {
         {/* Main Content Container */}
         <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-lg shadow-sm p-0 md:p-6">
           {/* Download All Button - Mobile */}
-
           <div className="md:hidden flex justify-end p-3">
-            
             <button
-              className="flex gap-2 bg-white items-center border border-gray-300 rounded-md px-3 py-1 text-sm"
+              className={`flex gap-2 items-center border rounded-md px-3 py-1 text-sm ${
+                successfulCount > 0 && !isLoading
+                  ? "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
               onClick={handleDownloadAll}
+              disabled={successfulCount === 0 || isLoading}
             >
-              {/* <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg> */}
-
               <img src="/icons/DownloadSimple.svg" alt="" width={15} />
-              Download All
+              Download All ({successfulCount})
             </button>
           </div>
 
           {/* Download All Button - Desktop */}
           <div className="hidden md:flex justify-end mb-2 lg:mr-10">
             <button
-              className="flex bg-gray-200 hover:bg-gray-300 text-gray-700 gap-2 py-1 px-2 md:py-2 md:px-4 border border-black rounded text-xs md:text-sm"
+              className={`flex gap-2 py-1 px-2 md:py-2 md:px-4 border rounded text-xs md:text-sm ${
+                successfulCount > 0 && !isLoading
+                  ? "bg-gray-200 hover:bg-gray-300 text-gray-700 border-black"
+                  : "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+              }`}
               onClick={handleDownloadAll}
+              disabled={successfulCount === 0 || isLoading}
             >
-              <img src="/icons/DownloadSimple.svg" alt="" width={16} className="hidden sm:block" />
-              Download All
+              <img
+                src="/icons/DownloadSimple.svg"
+                alt=""
+                width={16}
+                className="hidden sm:block"
+              />
+              Download All ({successfulCount})
             </button>
           </div>
 
@@ -357,7 +365,8 @@ const Certificate = () => {
                 <div>
                   <span className="font-semibold">VIN Search</span>
                   <span className="text-sm text-gray-500 ml-1">
-                    ({allCertData.length} result{allCertData.length !== 1 ? "s" : ""})
+                    ({allCertData.length} result
+                    {allCertData.length !== 1 ? "s" : ""})
                   </span>
                 </div>
               </div>
@@ -438,7 +447,7 @@ const Certificate = () => {
                       VIN Number
                     </div>
                     <div className="col-span-3 font-medium text-gray-700">
-                      Date & Time
+                      Reference Number
                     </div>
                     <div className="col-span-2 font-medium text-gray-700">
                       Status
@@ -454,7 +463,10 @@ const Certificate = () => {
                     </div>
                   ) : (
                     allCertData.map((cert, index) => (
-                      <div key={index} className="grid grid-cols-12 py-3 px-4 border-b border-gray-100 hover:bg-gray-50">
+                      <div
+                        key={index}
+                        className="grid grid-cols-12 py-3 px-4 border-b border-gray-100 hover:bg-gray-50"
+                      >
                         <div className="col-span-1 flex items-center">
                           <input
                             type="checkbox"
@@ -462,18 +474,18 @@ const Certificate = () => {
                           />
                         </div>
                         <div className="col-span-3 flex items-center font-medium">
-                          {cert.vin?.vin || "-"}
+                          {cert.vin || "-"}
                         </div>
                         <div className="col-span-3 flex items-center text-gray-700">
-                          {formatDate(cert.created_at)}
+                          {cert.ref_number || "-"}
                         </div>
                         <div className="col-span-2 flex items-center">
-                          {cert.status === "successful" ? (
+                          {cert.status?.toLowerCase() === "successful" ? (
                             <div className="flex items-center">
                               <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                               <span className="text-green-500">Successful</span>
                             </div>
-                          ) : cert.status === "not found" ? (
+                          ) : cert.status === "Not found" ? (
                             <div className="flex items-center">
                               <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2"></span>
                               <span className="text-red-500">Not found</span>
@@ -483,32 +495,30 @@ const Certificate = () => {
                           )}
                         </div>
                         <div className="col-span-3 flex items-center">
-                          {cert.status === "not found" ? (
-                            <button className="flex items-center text-red-500 hover:text-red-600 text-sm">
-                              <svg
-                                className="h-4 w-4 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              Regularize payment
-                            </button>
+                          {cert.status?.toLowerCase() !== "successful" ? (
+                            <Link 
+                              to="https://bodogwu.customs.gov.ng/"
+                              className="flex items-center space-x-2 text-red-500 hover:text-red-600 text-sm"
+                            >
+                              <img
+                                src="/icons/DownloadSimple.svg"
+                                alt=""
+                                width={15}
+                              />
+                              <span>Regularize payment</span>
+                            </Link>
                           ) : (
                             <button
                               onClick={() =>
-                                cert.vin?.vin &&
-                                handleDownloadCertificate(cert.vin.vin)
+                                handleDownloadCertificate(cert)
                               }
                               className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
                             >
-                              <img src="/icons/DownloadSimple.svg" alt="" width={15} />
+                              <img
+                                src="/icons/DownloadSimple.svg"
+                                alt=""
+                                width={15}
+                              />
                               Download Certificate
                             </button>
                           )}
@@ -518,7 +528,7 @@ const Certificate = () => {
                   )}
                 </div>
 
-                {/* Mobile View - NEW STYLING to match the image */}
+                {/* Mobile View */}
                 <div className="md:hidden">
                   {allCertData.length === 0 && !isLoading ? (
                     <div className="py-6 text-center text-gray-600 text-sm">
@@ -526,79 +536,76 @@ const Certificate = () => {
                     </div>
                   ) : (
                     allCertData.map((cert, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="px-4 py-3 border-b border-gray-200"
                       >
                         <div className="mb-1">
                           <div className="text-sm text-gray-500 mb-1">VIN:</div>
-                          <div className="font-medium">{cert.vin?.vin || "-"}</div>
+                          <div className="font-medium">
+                            {cert.vin || "-"}
+                          </div>
                         </div>
-                        
+
                         <div className="mb-1">
-                          <div className="text-sm text-gray-500 mb-1">Status:</div>
+                          <div className="text-sm text-gray-500 mb-1">
+                            Reference:
+                          </div>
+                          <div className="text-sm">
+                            {cert.ref_number || "-"}
+                          </div>
+                        </div>
+
+                        <div className="mb-1">
+                          <div className="text-sm text-gray-500 mb-1">
+                            Status:
+                          </div>
                           <div>
-                            {cert.status === "successful" ? (
+                            {cert.status?.toLowerCase() === "successful" ? (
                               <div className="flex items-center">
                                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                                <span className="text-green-500 text-sm">Successful</span>
+                                <span className="text-green-500 text-sm">
+                                  Successful
+                                </span>
                               </div>
-                            ) : cert.status === "not found" ? (
+                            ) : cert.status === "Not found" ? (
                               <div className="flex items-center">
                                 <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                                <span className="text-red-500 text-sm">Not found</span>
+                                <span className="text-red-500 text-sm">
+                                  Not found
+                                </span>
                               </div>
                             ) : (
                               <span className="text-gray-500">-</span>
                             )}
                           </div>
                         </div>
-                        
-                        <div className="mb-2">
-                          <div className="text-sm text-gray-500 mb-1">Date & Time:</div>
-                          <div className="text-sm">{formatDate(cert.created_at)}</div>
-                        </div>
-                        
+
                         <div className="mt-3">
-                          {cert.status === "not found" ? (
-                            <button className="w-full flex items-center justify-center bg-white border border-red-500 text-red-500 rounded-md py-2 px-4 text-sm">
-                              <svg
-                                className="h-4 w-4 mr-2"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              Regularize payment
-                            </button>
+                          {cert.status?.toLowerCase() !== "successful" ? (
+                            <Link 
+                              to="https://bodogwu.customs.gov.ng/"
+                              className="w-full flex items-center justify-center space-x-2 bg-white border border-red-500 text-red-500 rounded-md py-2 px-4 text-sm"
+                            >
+                              <img
+                                src="/icons/DownloadSimple.svg"
+                                alt=""
+                                width={15}
+                              />
+                              <span>Regularize payment</span>
+                            </Link>
                           ) : (
                             <button
                               onClick={() =>
-                                cert.vin?.vin &&
-                                handleDownloadCertificate(cert.vin.vin)
+                                handleDownloadCertificate(cert)
                               }
                               className="w-full flex gap-2 items-center justify-center bg-white border border-[#000000] text-gray-700 rounded-md py-2 px-4 text-sm"
                             >
-                              {/* <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4 mr-2"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                  clipRule="evenodd"
-                                />
-                              </svg> */}
-
-                                <img src="/icons/DownloadSimple.svg" alt="" width={15} />
+                              <img
+                                src="/icons/DownloadSimple.svg"
+                                alt=""
+                                width={15}
+                              />
                               Download Certificate
                             </button>
                           )}
@@ -628,7 +635,11 @@ const Certificate = () => {
                 </svg>
                 <p className="flex flex-wrap gap-1 md:gap-2">
                   For any failed result, Please
-                  <a href="#" onClick={openContactModal} className="text-green-600 underline">
+                  <a
+                    href="#"
+                    onClick={openContactModal}
+                    className="text-green-600 underline"
+                  >
                     contact support
                   </a>
                 </p>

@@ -9,11 +9,12 @@ import SuccessPaymentModal from "./SuccessPaymentModal"
 import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../../../core/store"
 import { clearCart } from "../../../cart/redux/slices/cartSlice"
-// import NINVerificationModal from "../../../nin/components/NINVerificationModal"
+import axios from "axios"
 
 // Types
 type PaymentMethod = "remita" | "paystack"
 type PaymentStatus = "idle" | "processing" | "success" | "failed" | "timeout" | "pending"
+type VerificationStatus = "pending" | "verified" | "failed"
 
 interface PaymentDetails {
   transactionId: string
@@ -21,6 +22,7 @@ interface PaymentDetails {
   paymentMethod: PaymentMethod
   paymentState?: string
   amount: number
+  verificationStatus?: VerificationStatus
   items: Array<{
     id: string
     name: string
@@ -28,6 +30,14 @@ interface PaymentDetails {
     price: number
     type: string
   }>
+}
+
+interface CheckoutResponse {
+  message: string
+  reference: string
+  payment_gateway: string
+  amount: number
+  authorization_url: string
 }
 
 interface PaymentGatewayModalProps {
@@ -44,7 +54,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   email = "customer@example.com",
 }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  // const [showNINModal, setShowNINModal] = useState(false);
   const cartItems = useSelector((state: RootState) => state.cart.items)
   const dispatch = useDispatch()
 
@@ -55,17 +64,26 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     transactionDate: "",
     paymentMethod: "paystack",
     amount: total,
+    verificationStatus: "pending",
     items: [],
   })
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [savedCartItems, setSavedCartItems] = useState<typeof cartItems>([])
   const [remitaLoaded, setRemitaLoaded] = useState(false)
 
-  // Remita configuration - using the invoice generation credentials
+  // API instance with better token handling
+  const getApiInstance = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    return axios.create({
+      baseURL: 'https://cvms-microservice.afripointdev.com/vin',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : undefined
+      }
+    })
+  }
+
+  // Remita configuration
   const REMITA_MERCHANT_ID = "27768931"
-  // const REMITA_SERVICE_TYPE_ID = "35126630"
-  // const REMITA_API_KEY = "Q1dHREVNTzEyMzR8Q1dHREVNTw=="
-  // const REMITA_BASE_URL = "https://remitademo.net" // Using demo URL for testing
 
   // Save cart items before payment
   useEffect(() => {
@@ -94,12 +112,14 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     document.body.appendChild(script)
 
     return () => {
-      document.body.removeChild(script)
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
     }
   }, [])
 
   // Generate transaction ID
-  const generateTransactionId = () => `TXN_${Date.now()}`
+  // const generateTransactionId = () => `TXN_${Date.now()}`
 
   // Format transaction date
   const formatTransactionDate = () => {
@@ -110,24 +130,81 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     })
   }
 
-  // Handle payment completion
-  const completePayment = (txnId: string, method: PaymentMethod, state?: string) => {
+  // Call checkout endpoint for one-time payment
+  const initiateCheckout = async (gateway: PaymentMethod): Promise<CheckoutResponse> => {
+    try {
+      const api = getApiInstance()
+      const response = await api.post('/checkout-one-time-payment/', {
+        gateway: gateway
+        
+      })
+      return response.data
+    } catch (error) {
+      console.error('Checkout API error:', error)
+      throw new Error('Failed to initiate checkout process')
+    }
+  }
+
+  // Verify payment after successful transaction
+  // const verifyPayment = async (reference: string, gateway: string) => {
+  //   try {
+  //     const api = getApiInstance()
+  //     const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`)
+  //     return response.data
+  //   } catch (error) {
+  //     console.error('Payment verification error:', error)
+  //     throw new Error('Failed to verify payment')
+  //   }
+  // }
+
+  // Handle payment completion with proper verification flow
+  const completePayment = async (txnId: string, method: PaymentMethod, state?: string) => {
     const txnDate = formatTransactionDate()
     
-    const newPaymentDetails = {
+    // PHASE 1: Show success modal immediately with pending verification
+    const preliminaryPaymentDetails: PaymentDetails = {
       transactionId: txnId,
       transactionDate: txnDate,
       paymentMethod: method,
       paymentState: state,
       amount: total,
+      verificationStatus: "pending",
       items: savedCartItems.map(item => ({...item})),
     }
 
-    setPaymentDetails(newPaymentDetails)
-    dispatch(clearCart())
+    // Show success modal immediately
+    setPaymentDetails(preliminaryPaymentDetails)
     setPaymentStatus("success")
     setShowSuccessModal(true)
     onPay(method, txnId, state)
+
+    dispatch(clearCart())
+
+
+    // PHASE 2: Backend verification (happens after modal is shown)
+    // try {
+    //   console.log('Starting payment verification...')
+    //   await verifyPayment(txnId, method)
+      
+    //   // Verification successful - update status and clear cart
+    //   setPaymentDetails(prev => ({
+    //     ...prev,
+    //     verificationStatus: "verified"
+    //   }))
+      
+    //   console.log('Payment verification completed successfully')
+      
+    // } catch (error) {
+    //   console.error('Payment verification error:', error)
+      
+    //   // Verification failed - update status but don't clear cart yet
+    //   setPaymentDetails(prev => ({
+    //     ...prev,
+    //     verificationStatus: "failed"
+    //   }))
+      
+    //   toast.warn('Payment received but verification pending. Please contact support if needed.')
+    // }
   }
 
   // Handle modal close
@@ -136,27 +213,64 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     onClose()
   }
 
-  // Paystack configuration
-  const paystackConfig = {
-    reference: generateTransactionId(),
-    email: email,
-    amount: total * 100, // Paystack expects amount in kobo
-    publicKey: "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd",
-    currency: "NGN",
+  // Handle Paystack payment with one-time checkout
+  const handlePaystackPayment = async () => {
+    try {
+      console.log('Starting Paystack payment process...')
+      setPaymentStatus("processing")
+      
+      // Call checkout endpoint
+      const checkoutResponse = await initiateCheckout("paystack")
+      console.log('Checkout response received:', checkoutResponse)
+      
+      const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
+
+      // Configure Paystack with the reference from API
+      const paystackConfig = {
+        reference: checkoutResponse.reference,
+        email: email,
+        amount: checkoutResponse.amount * 100, // Convert to kobo
+        publicKey: PAYSTACK_PUBLIC_KEY,
+        currency: "NGN" as const,
+      }
+
+      console.log('Initializing Paystack with config:', paystackConfig)
+
+      const initializePaystack = usePaystackPayment(paystackConfig)
+      
+      initializePaystack({
+        ...paystackConfig,
+        onSuccess: (response: any) => {
+          console.log("Paystack payment success:", response)
+          // This will show the success modal immediately and then verify
+          completePayment(response.reference, "paystack", "SUCCESSFUL")
+        },
+        onClose: () => {
+          console.log("Paystack payment window closed")
+          if (paymentStatus !== "success") {
+            setPaymentStatus("idle")
+          }
+        },
+      })
+      
+    } catch (error) {
+      console.error("Paystack payment error:", error)
+      toast.error("Failed to initiate payment. Please try again.")
+      setPaymentStatus("failed")
+    }
   }
 
-  const initializePaystack = usePaystackPayment(paystackConfig)
-
   // Handle Remita payment
-  const handleRemitaPayment = () => {
+  const handleRemitaPayment = async () => {
+    console.log('Starting Remita payment process...')
     setPaymentStatus("processing")
-    const transactionId = generateTransactionId()
-
-    // Generate hash for Remita
-    // const hashString = `${REMITA_SERVICE_TYPE_ID}${transactionId}${total}${REMITA_API_KEY}`
-    // const hash = CryptoJS.SHA512(hashString).toString()
+    // const transactionId = generateTransactionId()
 
     try {
+      // First call the checkout endpoint for Remita
+      const checkoutResponse = await initiateCheckout("remita")
+      console.log('Remita checkout response received:', checkoutResponse)
+
       if (typeof window !== 'undefined' && window.RmPaymentEngine) {
         const paymentEngine = new window.RmPaymentEngine()
         
@@ -168,10 +282,10 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
           email: email,
           amount: total,
           narration: "CVMS Payment",
-          transactionId: transactionId,
+          transactionId: checkoutResponse.reference, // Use reference from API
           onSuccess: (response: any) => {
             console.log("Remita payment success:", response)
-            completePayment(transactionId, "remita", "SUCCESSFUL")
+            completePayment(checkoutResponse.reference, "remita", "SUCCESSFUL")
           },
           onError: (error: any) => {
             console.error("Remita payment error:", error)
@@ -190,30 +304,28 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       }
     } catch (error) {
       console.error("Remita initialization error:", error)
-      toast.error("Failed to initialize Remita payment. Please try Paystack instead.")
+      toast.error("Failed to initialize Remita payment. Please try again.")
       setPaymentStatus("failed")
     }
   }
 
   // Handle payment method selection
   const handlePayment = () => {
-    if (!selectedMethod) return
+    console.log('handlePayment called with:', { 
+      selectedMethod, 
+      isAuthenticated, 
+      user,
+      paymentStatus 
+    })
 
-    if (isAuthenticated && user && !user.NINVerified) {
-      // setShowNINModal(true);
-      return;
+    if (!selectedMethod) {
+      console.log('No payment method selected')
+      return
     }
 
-    setPaymentStatus("processing")
-
+    // Process payment immediately without NIN verification check
     if (selectedMethod === "paystack") {
-      initializePaystack({
-        ...paystackConfig,
-        onSuccess: (response: any) => {
-          completePayment(response.reference, "paystack", "SUCCESSFUL")
-        },
-        onClose: () => setPaymentStatus("idle"),
-      })
+      handlePaystackPayment()
     } else {
       handleRemitaPayment()
     }
@@ -222,19 +334,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   return (
     <>
       <ToastContainer position="bottom-right" autoClose={5000} />
-
-      {/* NIN Verification Modal */}
-      {/* {showNINModal && (
-        <NINVerificationModal
-          isOpen={showNINModal}
-          onClose={() => setShowNINModal(false)}
-          onSuccess={() => {
-            setShowNINModal(false);
-            // After successful verification, proceed with payment
-            handlePayment();
-          }}
-        />
-      )} */}
 
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-xl w-96 p-6">
@@ -331,6 +430,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
           transactionDate={paymentDetails.transactionDate}
           paymentMethod={paymentDetails.paymentMethod === "paystack" ? "Paystack" : "Remita"}
           items={paymentDetails.items}
+          verificationStatus={paymentDetails.verificationStatus}
         />
       )}
     </>

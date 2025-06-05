@@ -12,7 +12,7 @@ import settingsReducer from '../../modules/profileManagement/redux/reducer';
 // Import our new reducers
 // import fileReducer from "../../modules/profileManagement/redux/slices/fileSlice"
 // import teamReducer from "../../modules/profileManagement/redux/slices/teamSlice"
-// import walletReducer from "../../modules/profileManagement/redux/slices/walletSlice"
+import walletReducer from "../../modules/wallet/redux/slices/walletSlice"
 // import historyReducer from "../../modules/profileManagement/redux/slices/historySlice"
 
 const rootReducer = combineReducers({
@@ -26,6 +26,7 @@ const rootReducer = combineReducers({
   agencies: agencyReducer,
   tracking: trackingReducer,
   settings: settingsReducer,
+  wallet: walletReducer,
 
   // New reducers
   // files: fileReducer,
