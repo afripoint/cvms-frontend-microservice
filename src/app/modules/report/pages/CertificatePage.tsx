@@ -107,7 +107,7 @@ const Certificate = () => {
             month: "short",
             year: "numeric",
           }),
-          qrCodeBase64: "", // Add QR code if available
+          qrCodeBase64: "", 
         };
 
         // Add a small delay between downloads
