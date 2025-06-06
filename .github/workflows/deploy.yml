@@ -3,16 +3,16 @@ name: Deploy Frontend to Hostinger
 on:
   push:
     branches:
-      - cvms-staging
+      - newbuild
 
 env:
   IMAGE_NAME: microservice-cvms-frontend
-  IMAGE_TAG: staging
+  IMAGE_TAG: latest
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: development
 
     steps:
       # Checkout the code from GitHub repository
