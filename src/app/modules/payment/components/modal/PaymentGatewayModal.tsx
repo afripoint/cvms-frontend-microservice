@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../../../core/store"
 import { clearCart } from "../../../cart/redux/slices/cartSlice"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 // Types
 type PaymentMethod = "remita" | "paystack"
@@ -56,6 +57,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle")
@@ -118,9 +120,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     }
   }, [])
 
-  // Generate transaction ID
-  // const generateTransactionId = () => `TXN_${Date.now()}`
-
   // Format transaction date
   const formatTransactionDate = () => {
     return new Date().toLocaleDateString("en-GB", {
@@ -136,7 +135,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       const api = getApiInstance()
       const response = await api.post('/checkout-one-time-payment/', {
         gateway: gateway
-        
       })
       return response.data
     } catch (error) {
@@ -146,22 +144,55 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   }
 
   // Verify payment after successful transaction
-  // const verifyPayment = async (reference: string, gateway: string) => {
-  //   try {
-  //     const api = getApiInstance()
-  //     const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`)
-  //     return response.data
-  //   } catch (error) {
-  //     console.error('Payment verification error:', error)
-  //     throw new Error('Failed to verify payment')
-  //   }
-  // }
+  const verifyPayment = async (reference: string, gateway: string) => {
+    try {
+      const api = getApiInstance()
+      const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`)
+      return response.data
+    } catch (error) {
+      console.error('Payment verification error:', error)
+      throw new Error('Failed to verify payment')
+    }
+  }
 
-  // Handle payment completion with proper verification flow
-  const completePayment = async (txnId: string, method: PaymentMethod, state?: string) => {
+  // Store payment data in sessionStorage for verification page
+  const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
+    const paymentData = {
+      transactionId: txnId,
+      transactionDate: formatTransactionDate(),
+      paymentMethod: method,
+      paymentState: state,
+      amount: total,
+      items: savedCartItems.map(item => ({...item})),
+      gateway: method
+    }
+    
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
+    }
+  }
+
+  // Handle payment completion for Paystack (redirect to verification)
+  const completePaystackPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
+    // Store payment data for verification page
+    storePaymentData(txnId, method, state)
+    
+    // Clear cart immediately
+    dispatch(clearCart())
+    
+    // Call onPay callback
+    onPay(method, txnId, state)
+    
+    // Close modal and redirect to verification page
+    onClose()
+    navigate('/success-payment')
+  }
+
+  // Handle payment completion for Remita (show success modal directly)
+  const completeRemitaPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
     const txnDate = formatTransactionDate()
     
-    // PHASE 1: Show success modal immediately with pending verification
+    // Show success modal immediately with pending verification
     const preliminaryPaymentDetails: PaymentDetails = {
       transactionId: txnId,
       transactionDate: txnDate,
@@ -180,31 +211,30 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 
     dispatch(clearCart())
 
-
-    // PHASE 2: Backend verification (happens after modal is shown)
-    // try {
-    //   console.log('Starting payment verification...')
-    //   await verifyPayment(txnId, method)
+    // Backend verification for Remita
+    try {
+      console.log('Starting payment verification...')
+      await verifyPayment(txnId, method)
       
-    //   // Verification successful - update status and clear cart
-    //   setPaymentDetails(prev => ({
-    //     ...prev,
-    //     verificationStatus: "verified"
-    //   }))
+      // Verification successful - update status
+      setPaymentDetails(prev => ({
+        ...prev,
+        verificationStatus: "verified"
+      }))
       
-    //   console.log('Payment verification completed successfully')
+      console.log('Payment verification completed successfully')
       
-    // } catch (error) {
-    //   console.error('Payment verification error:', error)
+    } catch (error) {
+      console.error('Payment verification error:', error)
       
-    //   // Verification failed - update status but don't clear cart yet
-    //   setPaymentDetails(prev => ({
-    //     ...prev,
-    //     verificationStatus: "failed"
-    //   }))
+      // Verification failed - update status
+      setPaymentDetails(prev => ({
+        ...prev,
+        verificationStatus: "failed"
+      }))
       
-    //   toast.warn('Payment received but verification pending. Please contact support if needed.')
-    // }
+      toast.warn('Payment received but verification pending. Please contact support if needed.')
+    }
   }
 
   // Handle modal close
@@ -242,8 +272,8 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
         ...paystackConfig,
         onSuccess: (response: any) => {
           console.log("Paystack payment success:", response)
-          // This will show the success modal immediately and then verify
-          completePayment(response.reference, "paystack", "SUCCESSFUL")
+          // Redirect to verification page instead of showing success modal
+          completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
         },
         onClose: () => {
           console.log("Paystack payment window closed")
@@ -264,7 +294,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const handleRemitaPayment = async () => {
     console.log('Starting Remita payment process...')
     setPaymentStatus("processing")
-    // const transactionId = generateTransactionId()
 
     try {
       // First call the checkout endpoint for Remita
@@ -285,7 +314,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
           transactionId: checkoutResponse.reference, // Use reference from API
           onSuccess: (response: any) => {
             console.log("Remita payment success:", response)
-            completePayment(checkoutResponse.reference, "remita", "SUCCESSFUL")
+            completeRemitaPayment(checkoutResponse.reference, "remita", "SUCCESSFUL")
           },
           onError: (error: any) => {
             console.error("Remita payment error:", error)
