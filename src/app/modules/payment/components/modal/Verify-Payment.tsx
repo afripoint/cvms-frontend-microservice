@@ -93,10 +93,10 @@ const reference = urlParams.get('reference');
   // Verify payment API call
   const verifyPayment = async (gateway: string) => {
     // console.log(txnId)
-     console.log(gateway)
+    // console.log(gateway)
     try {
       const api = getApiInstance();
-      const response = await api.get(`/verify-one-time-payment/${reference}`);
+      const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`);
       return response.data;
     } catch (error) {
       console.error('Payment verification error:', error);
