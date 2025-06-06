@@ -9,7 +9,7 @@ import {
 } from "../../../core/storage/storage"
 import { TeamMember } from "../../profileManagement/types"
 
-const API_URL = "https://cvms-staging.afripointdev.com/auth"
+const API_URL = "https://cvms-microservice.afripointdev.com/auth"
 
 // Define types for HTTP headers
 type HttpHeaders = {

@@ -50,7 +50,7 @@ export const cartService = {
 
       // Make the API call using axios
       const response = await axios.post(
-        'https://cvms-staging.afripointdev.com/vin/add-vins-to-cart/',
+        'https://cvms-microservice.afripointdev.com/vin/add-vins-to-cart/',
         { vins }, // Request body
         {
           headers,
@@ -163,7 +163,7 @@ export const cartService = {
       };
 
       // Build the correct URL with VIN as path parameter
-      const url = `https://cvms-staging.afripointdev.com/vin/cart/remove-vin/${cleanVin}/`;
+      const url = `https://cvms-microservice.afripointdev.com/vin/cart/remove-vin/${cleanVin}/`;
       
       console.log(`Making DELETE request to:`, url);
 

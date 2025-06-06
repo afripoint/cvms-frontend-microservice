@@ -260,7 +260,7 @@ const AppContent: React.FC = () => {
           <Route path="/payment-method" element={<PaymentMethodPage />} />
           <Route path="/certificate" element={<Certificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificatePage />} />
-          <Route path="/verify-payment" element={<VerifyPayment/>} />
+          <Route path="/payment-success" element={<VerifyPayment/>} />
 
           
           {/* Fallback route */}
