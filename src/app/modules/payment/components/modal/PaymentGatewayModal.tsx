@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../../../core/store"
 import { clearCart } from "../../../cart/redux/slices/cartSlice"
 import axios from "axios"
-import { useNavigate } from "react-router-dom"
+// import { useNavigate } from "react-router-dom"
 
 // Types
 type PaymentMethod = "remita" | "paystack"
@@ -57,7 +57,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
   const dispatch = useDispatch()
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle")
@@ -185,7 +185,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     
     // Close modal and redirect to verification page
     onClose()
-    navigate('/success-payment')
+    // navigate('/success-payment')
   }
 
   // Handle payment completion for Remita (show success modal directly)
