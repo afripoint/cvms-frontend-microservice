@@ -3,16 +3,16 @@ name: Deploy Frontend to Hostinger
 on:
   push:
     branches:
-      - newbuild
+      - staging
 
 env:
   IMAGE_NAME: microservice-cvms-frontend
-  IMAGE_TAG: latest
+  IMAGE_TAG: staging
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: development
+    environment: staging
 
     steps:
       # Checkout the code from GitHub repository
@@ -65,6 +65,6 @@ jobs:
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} '
             cd /srv/cvms-microservices
-            docker-compose -f docker-compose.yml pull frontend
-            docker-compose -f docker-compose.yml up -d frontend
-          ' 
+            docker compose -f docker-compose.yml pull frontend
+            docker compose -f docker-compose.yml up -d frontend
+          '

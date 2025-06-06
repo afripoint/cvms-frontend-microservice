@@ -92,7 +92,7 @@ export interface ApiResponse {
   results: ApiVehicleResult[];
 }
 
-const API_BASE_URL = 'https://cvms-microservice.afripointdev.com/vin';
+const API_BASE_URL = 'https://cvms-staging.afripointdev.com/vin';
 
 export const vinApiService = {
   async getAuthHeader() {
