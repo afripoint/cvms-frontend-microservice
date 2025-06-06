@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect} from "react"
-import { usePaystackPayment } from "react-paystack"
+// import { usePaystackPayment } from "react-paystack"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import SuccessPaymentModal from "./SuccessPaymentModal"
@@ -136,6 +136,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       const response = await api.post('/checkout-one-time-payment/', {
         gateway: gateway
       })
+      console.log(response);
       return response.data
     } catch (error) {
       console.error('Checkout API error:', error)
@@ -156,37 +157,37 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   }
 
   // Store payment data in sessionStorage for verification page
-  const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
-    const paymentData = {
-      transactionId: txnId,
-      transactionDate: formatTransactionDate(),
-      paymentMethod: method,
-      paymentState: state,
-      amount: total,
-      items: savedCartItems.map(item => ({...item})),
-      gateway: method
-    }
+  // const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
+  //   const paymentData = {
+  //     transactionId: txnId,
+  //     transactionDate: formatTransactionDate(),
+  //     paymentMethod: method,
+  //     paymentState: state,
+  //     amount: total,
+  //     items: savedCartItems.map(item => ({...item})),
+  //     gateway: method
+  //   }
     
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
-    }
-  }
+  //   if (typeof window !== 'undefined') {
+  //     sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
+  //   }
+  // }
 
   // Handle payment completion for Paystack (redirect to verification)
-  const completePaystackPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
-    // Store payment data for verification page
-    storePaymentData(txnId, method, state)
+  // const completePaystackPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
+  //   // Store payment data for verification page
+  //   storePaymentData(txnId, method, state)
     
-    // Clear cart immediately
-    dispatch(clearCart())
+  //   // Clear cart immediately
+  //   dispatch(clearCart())
     
-    // Call onPay callback
-    onPay(method, txnId, state)
+  //   // Call onPay callback
+  //   onPay(method, txnId, state)
     
-    // Close modal and redirect to verification page
-    onClose()
-    // navigate('/success-payment')
-  }
+  //   // Close modal and redirect to verification page
+  //   onClose()
+  //   // navigate('/verify-payment', {state: {txnId}})
+  // }
 
   // Handle payment completion for Remita (show success modal directly)
   const completeRemitaPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
@@ -252,36 +253,39 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       // Call checkout endpoint
       const checkoutResponse = await initiateCheckout("paystack")
       console.log('Checkout response received:', checkoutResponse)
+      window.location.href = checkoutResponse.authorization_url
+       dispatch(clearCart())
+    
       
-      const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
+      // const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
 
       // Configure Paystack with the reference from API
-      const paystackConfig = {
-        reference: checkoutResponse.reference,
-        email: email,
-        amount: checkoutResponse.amount * 100, // Convert to kobo
-        publicKey: PAYSTACK_PUBLIC_KEY,
-        currency: "NGN" as const,
-      }
+      // const paystackConfig = {
+      //   // reference: checkoutResponse.reference,
+      //   email: email,
+      //   amount: checkoutResponse.amount * 100, // Convert to kobo
+      //   publicKey: PAYSTACK_PUBLIC_KEY,
+      //   currency: "NGN" as const,
+      // }
 
-      console.log('Initializing Paystack with config:', paystackConfig)
+      // console.log('Initializing Paystack with config:', paystackConfig)
 
-      const initializePaystack = usePaystackPayment(paystackConfig)
+      // const initializePaystack = usePaystackPayment(paystackConfig)
       
-      initializePaystack({
-        ...paystackConfig,
-        onSuccess: (response: any) => {
-          console.log("Paystack payment success:", response)
-          // Redirect to verification page instead of showing success modal
-          completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
-        },
-        onClose: () => {
-          console.log("Paystack payment window closed")
-          if (paymentStatus !== "success") {
-            setPaymentStatus("idle")
-          }
-        },
-      })
+      // initializePaystack({
+      //   ...paystackConfig,
+      //   onSuccess: (response: any) => {
+      //     console.log("Paystack payment success:", response)
+      //     // Redirect to verification page instead of showing success modal
+      //     completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
+      //   },
+      //   onClose: () => {
+      //     console.log("Paystack payment window closed")
+      //     if (paymentStatus !== "success") {
+      //       setPaymentStatus("idle")
+      //     }
+      //   },
+      // })
       
     } catch (error) {
       console.error("Paystack payment error:", error)

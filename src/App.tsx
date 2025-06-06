@@ -153,6 +153,8 @@ import VerifyPayment from './app/modules/payment/components/modal/Verify-Payment
 import UserGuidePage from './app/pages/Guide';
 import CookiePolicy from './app/pages/Cookie-Policy';
 import Article from './app/modules/landing/components/layout/components/Articles';
+// import SuccessPaymentPage from './app/modules/payment/components/modal/SuccessPaymentPage';
+// import PaymentCallback from './app/modules/payment/components/modal/paymentCallback';
 
 // Lazy load components
 const Certificate = lazy(() => import('./app/modules/report/pages/CertificatePage'));
@@ -260,7 +262,12 @@ const AppContent: React.FC = () => {
           <Route path="/payment-method" element={<PaymentMethodPage />} />
           <Route path="/certificate" element={<Certificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificatePage />} />
-          <Route path="/success-payment" element={<VerifyPayment/>} />
+          <Route path="/successpayment" element={<VerifyPayment/>} />
+          {/*<Route path="/paymentcallback" element={<PaymentCallback/>} />
+          <Route path="/success" element={<SuccessPaymentPage/>} />  */}
+
+
+
 
           
           {/* Fallback route */}
