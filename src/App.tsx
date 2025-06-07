@@ -262,7 +262,7 @@ const AppContent: React.FC = () => {
           <Route path="/payment-method" element={<PaymentMethodPage />} />
           <Route path="/certificate" element={<Certificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificatePage />} />
-          <Route path="/successpayment" element={<VerifyPayment/>} />
+          <Route path="/verifypayment" element={<VerifyPayment/>} />
           {/*<Route path="/paymentcallback" element={<PaymentCallback/>} />
           <Route path="/success" element={<SuccessPaymentPage/>} />  */}
 
