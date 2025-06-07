@@ -418,13 +418,14 @@ const PaymentMethodPage: React.FC = () => {
       )}
 
       {showPaymentGatewayModal && (
-        <PaymentGatewayModal
-          onClose={() => setShowPaymentGatewayModal(false)}
-          onPay={handlePayment}
-          total={orderTotal}
-          email="customer@example.com" // You should get this from your user state/context
-        />
-      )}
+      <PaymentGatewayModal
+        onClose={() => setShowPaymentGatewayModal(false)}
+        onPay={handlePayment}
+        total={orderTotal}
+        email="customer@example.com"
+        planName={selectedMethod === "purchase" ? selectedPlan?.name : undefined}
+      />
+    )}
     </MainLayout>
   )
 }
