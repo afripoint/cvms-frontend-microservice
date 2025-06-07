@@ -119,11 +119,12 @@ export interface Transaction {
 }
 
 export interface HistoryItem {
-  id: number;
-  type: string;
-  amount: string;
+  vin: string;
+  make: string;
   date: string;
   status: string;
+  created_at: string; // Add this line
+  amount?: string; // Make this optional since it might not always be present
 }
 
 export interface TeamMember {
@@ -148,6 +149,7 @@ export interface LoadingState {
   togglingStatus: boolean;
   fetchingDetails: boolean;
   creatingSubAccount: boolean;
+  history: boolean; // Add this
 }
 
 export interface ErrorState {
@@ -157,6 +159,7 @@ export interface ErrorState {
   toggleStatus: string | null;
   fetchDetails: string | null;
   createSubAccount: string | null;
+  history: string | null; // Add this
 }
 
 export interface SettingsState {

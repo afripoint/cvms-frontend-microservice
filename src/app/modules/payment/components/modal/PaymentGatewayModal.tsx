@@ -2,15 +2,13 @@
 
 import type React from "react"
 import { useState, useEffect} from "react"
-// import { usePaystackPayment } from "react-paystack"
 import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+// import "react-toastify/dist/ReactToastify.css"
 import SuccessPaymentModal from "./SuccessPaymentModal"
 import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../../../core/store"
 import { clearCart } from "../../../cart/redux/slices/cartSlice"
 import axios from "axios"
-// import { useNavigate } from "react-router-dom"
 
 // Types
 type PaymentMethod = "remita" | "paystack"
@@ -35,10 +33,13 @@ interface PaymentDetails {
 
 interface CheckoutResponse {
   message: string
-  reference: string
+  reference?: string // For Paystack
+  rrr?: string // For Remita
   payment_gateway: string
+  order_id?: string // For Remita
   amount: number
-  authorization_url: string
+  authorization_url?: string // For Paystack
+  remita_inline_url?: string // For Remita
 }
 
 interface PaymentGatewayModalProps {
@@ -46,6 +47,13 @@ interface PaymentGatewayModalProps {
   onPay: (method: PaymentMethod, reference?: string, status?: string) => void
   total: number
   email?: string
+}
+
+// Extend Window interface for Remita
+declare global {
+  interface Window {
+    RmPaymentEngine: any
+  }
 }
 
 const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
@@ -57,7 +65,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
   const dispatch = useDispatch()
-  // const navigate = useNavigate()
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle")
@@ -94,29 +101,63 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     }
   }, [cartItems])
 
-  // Load Remita script
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://remitademo.net/payment/v1/remita-pay-inline.bundle.js'
-    script.async = true
+  // Load Remita script dynamically
+  const loadRemitaScript = (scriptUrl: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Check if script is already loaded
+      if (typeof window !== 'undefined' && window.RmPaymentEngine) {
+        resolve()
+        return
+      }
 
-    script.onload = () => {
+      const script = document.createElement('script')
+      script.src = scriptUrl
+      script.async = true
+
+      script.onload = () => {
+        if (typeof window !== 'undefined' && window.RmPaymentEngine) {
+          setRemitaLoaded(true)
+          resolve()
+        } else {
+          reject(new Error('RmPaymentEngine not available after script load'))
+        }
+      }
+
+      script.onerror = () => {
+        reject(new Error('Failed to load Remita script'))
+      }
+
+      document.head.appendChild(script)
+    })
+  }
+
+  // Initialize Remita script on component mount
+  useEffect(() => {
+    // Load the default demo script initially
+    const defaultScript = document.createElement('script')
+    defaultScript.src = 'https://demo.remita.net/payment/v1/remita-pay-inline.bundle.js'
+    defaultScript.async = true
+
+    defaultScript.onload = () => {
       if (typeof window !== 'undefined' && window.RmPaymentEngine) {
         setRemitaLoaded(true)
       }
     }
 
-    script.onerror = () => {
-      console.error('Failed to load Remita script')
-      toast.error('Failed to load Remita payment service. Please try Paystack instead.')
+    defaultScript.onerror = () => {
+      console.error('Failed to load default Remita script')
     }
 
-    document.body.appendChild(script)
+    document.head.appendChild(defaultScript)
 
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
-      }
+      // Cleanup scripts on unmount
+      const scripts = document.querySelectorAll('script[src*="remita-pay-inline.bundle.js"]')
+      scripts.forEach(script => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script)
+        }
+      })
     }
   }, [])
 
@@ -133,13 +174,50 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const initiateCheckout = async (gateway: PaymentMethod): Promise<CheckoutResponse> => {
     try {
       const api = getApiInstance()
-      const response = await api.post('/checkout-one-time-payment/', {
+      
+      const requestPayload = {
         gateway: gateway
+      }
+      
+      console.log('=== CHECKOUT REQUEST DEBUG ===')
+      console.log('Sending checkout request to:', api.defaults.baseURL + '/checkout-one-time-payment/')
+      console.log('Request payload:', JSON.stringify(requestPayload, null, 2))
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': api.defaults.headers['Authorization']
       })
-      console.log(response);
+      
+      const response = await api.post('/checkout-one-time-payment/', requestPayload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      console.log('=== CHECKOUT RESPONSE DEBUG ===')
+      console.log('Response status:', response.status)
+      console.log('Response data:', JSON.stringify(response.data, null, 2))
+      console.log('Response headers:', response.headers)
+      
+      // Validate that we got the expected gateway response
+      if (response.data.payment_gateway !== gateway) {
+        console.error(`❌ GATEWAY MISMATCH: Expected '${gateway}' but received '${response.data.payment_gateway}'`)
+        console.error('This indicates a backend API issue. Please check:')
+        console.error('1. API endpoint is correctly handling the gateway parameter')
+        console.error('2. Database/backend logic is processing the request correctly')
+        console.error('3. No middleware is overriding the gateway parameter')
+      }
+      
       return response.data
     } catch (error) {
+      console.error('=== CHECKOUT API ERROR ===')
       console.error('Checkout API error:', error)
+      if (axios.isAxiosError(error)) {
+        console.error('Request config:', error.config)
+        console.error('Request data sent:', error.config?.data)
+        console.error('Response data:', error.response?.data)
+        console.error('Response status:', error.response?.status)
+        console.error('Response headers:', error.response?.headers)
+      }
       throw new Error('Failed to initiate checkout process')
     }
   }
@@ -156,56 +234,23 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     }
   }
 
-  //Store payment data in sessionStorage for verification page
-  // const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
-  //   const paymentData = {
-  //     transactionId: txnId,
-  //     transactionDate: formatTransactionDate(),
-  //     paymentMethod: method,
-  //     paymentState: state,
-  //     amount: total,
-  //     items: savedCartItems.map(item => ({...item})),
-  //     gateway: method
-  //   }
-    
-  //   if (typeof window !== 'undefined') {
-  //     sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
-  //   }
-  // }
-
   const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
-  const paymentData = {
-    transactionId: txnId,
-    transactionDate: formatTransactionDate(),
-    paymentMethod: method,
-    paymentState: state,
-    amount: total,
-    items: savedCartItems.map(item => ({...item})),
-    gateway: method
+    const paymentData = {
+      transactionId: txnId,
+      transactionDate: formatTransactionDate(),
+      paymentMethod: method,
+      paymentState: state,
+      amount: total,
+      items: savedCartItems.map(item => ({...item})),
+      gateway: method
+    }
+    
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
+    }
   }
-  
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
-  }
-}
 
-  // Handle payment completion for Paystack (redirect to verification)
-  // const completePaystackPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
-  //   // Store payment data for verification page
-  //   storePaymentData(txnId, method, state)
-    
-  //   // Clear cart immediately
-  //   dispatch(clearCart())
-    
-  //   // Call onPay callback
-  //   onPay(method, txnId, state)
-    
-  //   // Close modal and redirect to verification page
-  //   onClose()
-  //   // navigate('/verify-payment', {state: {txnId}})
-  // }
-
-  // Handle payment completion for Remita (show success modal directly)
+  // Handle payment completion for Remita
   const completeRemitaPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
     const txnDate = formatTransactionDate()
     
@@ -260,71 +305,39 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     onClose()
   }
 
-  // Handle Paystack payment with one-time checkout
-  // const handlePaystackPayment = async () => {
-  //   try {
-  //     console.log('Starting Paystack payment process...')
-  //     setPaymentStatus("processing")
-      
-  //     // Call checkout endpoint
-  //     const checkoutResponse = await initiateCheckout("paystack")
-  //     console.log('Checkout response received:', checkoutResponse)
-  //     window.location.href = checkoutResponse.authorization_url
-  //      dispatch(clearCart())
-    
-      
-  //     // const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
-
-  //     // Configure Paystack with the reference from API
-  //     // const paystackConfig = {
-  //     //   // reference: checkoutResponse.reference,
-  //     //   email: email,
-  //     //   amount: checkoutResponse.amount * 100, // Convert to kobo
-  //     //   publicKey: PAYSTACK_PUBLIC_KEY,
-  //     //   currency: "NGN" as const,
-  //     // }
-
-  //     // console.log('Initializing Paystack with config:', paystackConfig)
-
-  //     // const initializePaystack = usePaystackPayment(paystackConfig)
-      
-  //     // initializePaystack({
-  //     //   ...paystackConfig,
-  //     //   onSuccess: (response: any) => {
-  //     //     console.log("Paystack payment success:", response)
-  //     //     // Redirect to verification page instead of showing success modal
-  //     //     completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
-  //     //   },
-  //     //   onClose: () => {
-  //     //     console.log("Paystack payment window closed")
-  //     //     if (paymentStatus !== "success") {
-  //     //       setPaymentStatus("idle")
-  //     //     }
-  //     //   },
-  //     // })
-      
-  //   } catch (error) {
-  //     console.error("Paystack payment error:", error)
-  //     toast.error("Failed to initiate payment. Please try again.")
-  //     setPaymentStatus("failed")
-  //   }
-  // }
-
+  // Handle Paystack payment
   const handlePaystackPayment = async () => {
-  try {
-    setPaymentStatus("processing")
-    
-    const checkoutResponse = await initiateCheckout("paystack")
-    // Store payment data before redirecting
-    storePaymentData(checkoutResponse.reference, "paystack", "PENDING")
-    window.location.href = checkoutResponse.authorization_url
-    dispatch(clearCart())
-  } catch (error) {
-    console.error("Paystack payment error:", error)
-    toast.error("Failed to initiate payment. Please try again.")
-    setPaymentStatus("failed")
+    try {
+      setPaymentStatus("processing")
+      
+      const checkoutResponse = await initiateCheckout("paystack")
+      
+      // Validate that we got a Paystack response
+      if (checkoutResponse.payment_gateway !== "paystack") {
+        throw new Error(`Expected Paystack response but got ${checkoutResponse.payment_gateway}`)
+      }
+      
+      if (!checkoutResponse.reference) {
+        throw new Error('Missing reference in Paystack API response')
+      }
+      
+      if (!checkoutResponse.authorization_url) {
+        throw new Error('Missing authorization_url in Paystack API response')
+      }
+      
+      // Store payment data before redirecting
+      storePaymentData(checkoutResponse.reference, "paystack", "PENDING")
+      
+      // Redirect to Paystack authorization URL
+      window.location.href = checkoutResponse.authorization_url
+      
+      dispatch(clearCart())
+    } catch (error) {
+      console.error("Paystack payment error:", error)
+      toast.error(`Failed to initiate Paystack payment: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setPaymentStatus("failed")
+    }
   }
-}
 
   // Handle Remita payment
   const handleRemitaPayment = async () => {
@@ -332,45 +345,100 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     setPaymentStatus("processing")
 
     try {
-      // First call the checkout endpoint for Remita
+      // Call the checkout endpoint for Remita
       const checkoutResponse = await initiateCheckout("remita")
       console.log('Remita checkout response received:', checkoutResponse)
 
-      if (typeof window !== 'undefined' && window.RmPaymentEngine) {
-        const paymentEngine = new window.RmPaymentEngine()
+      // TEMPORARY WORKAROUND: If backend returns Paystack instead of Remita
+      // This allows you to test Remita frontend integration while backend is being fixed
+      if (checkoutResponse.payment_gateway !== "remita") {
+        console.warn(`⚠️ TEMPORARY WORKAROUND: Backend returned ${checkoutResponse.payment_gateway} instead of remita`)
+        console.warn('Using mock Remita data for frontend testing...')
         
-        paymentEngine.showPaymentWidget({
-          key: REMITA_MERCHANT_ID,
-          customerId: email,
-          firstName: "Customer",
-          lastName: "User",
-          email: email,
-          amount: total,
-          narration: "CVMS Payment",
-          transactionId: checkoutResponse.reference, // Use reference from API
-          onSuccess: (response: any) => {
-            console.log("Remita payment success:", response)
-            completeRemitaPayment(checkoutResponse.reference, "remita", "SUCCESSFUL")
-          },
-          onError: (error: any) => {
-            console.error("Remita payment error:", error)
-            toast.error("Payment failed. Please try again or use Paystack.")
-            setPaymentStatus("failed")
-          },
-          onClose: () => {
-            console.log("Remita payment window closed")
-            if (paymentStatus !== "success") {
-              setPaymentStatus("idle")
-            }
-          },
-        })
-      } else {
-        throw new Error("Remita payment engine not available")
+        // Create mock Remita response for testing
+        const mockRemitaResponse = {
+          message: "Checkout process initiated (MOCK)",
+          rrr: checkoutResponse.reference || `RRR${Date.now()}`, // Use existing reference or generate one
+          payment_gateway: "remita",
+          order_id: `order_${Date.now()}`,
+          amount: checkoutResponse.amount,
+          remita_inline_url: "https://demo.remita.net/payment/v1/remita-pay-inline.bundle.js"
+        }
+        
+        console.log('Using mock Remita response:', mockRemitaResponse)
+        
+        // Continue with mock data
+        await processRemitaPayment(mockRemitaResponse)
+        return
       }
+
+      // Normal flow when backend correctly returns Remita response
+      await processRemitaPayment(checkoutResponse)
+      
     } catch (error) {
       console.error("Remita initialization error:", error)
-      toast.error("Failed to initialize Remita payment. Please try again.")
+      toast.error(`Failed to initialize Remita payment: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setPaymentStatus("failed")
+    }
+  }
+
+  // Extracted Remita payment processing logic
+  const processRemitaPayment = async (checkoutResponse: any) => {
+    // Validate required Remita fields
+    if (!checkoutResponse.rrr) {
+      throw new Error('Missing RRR (Remita Retrieval Reference) in API response')
+    }
+
+    if (!checkoutResponse.remita_inline_url) {
+      console.warn('No remita_inline_url provided, using default script')
+    }
+
+    // If the API returns a custom remita_inline_url, load it
+    if (checkoutResponse.remita_inline_url) {
+      try {
+        await loadRemitaScript(checkoutResponse.remita_inline_url)
+      } catch (scriptError) {
+        console.warn('Failed to load custom Remita script, using default:', scriptError)
+        // Continue with the default script if custom one fails
+      }
+    }
+
+    // Ensure Remita payment engine is available
+    if (typeof window !== 'undefined' && window.RmPaymentEngine) {
+      const paymentEngine = new window.RmPaymentEngine()
+      
+      const paymentConfig = {
+        key: REMITA_MERCHANT_ID,
+        customerId: email,
+        firstName: user?.first_name || "Customer",
+        lastName: user?.last_name || "User", 
+        email: email,
+        amount: total,
+        narration: "CVMS Payment",
+        transactionId: checkoutResponse.rrr, // Use RRR from Remita API response
+        onSuccess: (response: any) => {
+          console.log("Remita payment success:", response)
+          // Use the RRR for transaction tracking
+          completeRemitaPayment(checkoutResponse.rrr!, "remita", "SUCCESSFUL")
+        },
+        onError: (error: any) => {
+          console.error("Remita payment error:", error)
+          toast.error("Payment failed. Please try again or use Paystack.")
+          setPaymentStatus("failed")
+        },
+        onClose: () => {
+          console.log("Remita payment window closed")
+          if (paymentStatus !== "success") {
+            setPaymentStatus("idle")
+          }
+        },
+      }
+
+      console.log('Initializing Remita payment with config:', paymentConfig)
+      paymentEngine.showPaymentWidget(paymentConfig)
+      
+    } else {
+      throw new Error("Remita payment engine not available")
     }
   }
 
@@ -388,10 +456,10 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       return
     }
 
-    // Process payment immediately without NIN verification check
+    // Process payment based on selected method
     if (selectedMethod === "paystack") {
       handlePaystackPayment()
-    } else {
+    } else if (selectedMethod === "remita") {
       handleRemitaPayment()
     }
   }
@@ -407,7 +475,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 
           <div className="flex mb-6 justify-around">
             <div
-              className={`flex items-center p-3 cursor-pointer border rounded-lg mr-4 ${
+              className={`flex items-center p-3 cursor-pointer border rounded-lg mr-4 relative ${
                 selectedMethod === "remita" ? "border-green-500 bg-green-50" : "border-gray-200"
               } ${!remitaLoaded ? "opacity-50" : ""}`}
               onClick={() => remitaLoaded && setSelectedMethod("remita")}
@@ -422,7 +490,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
               />
               <img src="/icons/remita.svg" alt="Remita" className="h-8 w-16" />
               {!remitaLoaded && (
-                <span className="text-xs text-red-500 absolute -bottom-5 left-0">Loading service...</span>
+                <span className="text-xs text-red-500 absolute -bottom-6 left-0 whitespace-nowrap">Loading service...</span>
               )}
             </div>
 

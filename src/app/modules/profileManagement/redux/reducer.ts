@@ -45,7 +45,8 @@ const initialState: SettingsState = {
     updatingMember: false,
     togglingStatus: false,
     fetchingDetails: false,
-    creatingSubAccount: false
+    creatingSubAccount: false,
+    history: false // Add this
   },
   errors: {
     teamMembers: null,
@@ -53,7 +54,8 @@ const initialState: SettingsState = {
     updateMember: null,
     toggleStatus: null,
     fetchDetails: null,
-    createSubAccount: null
+    createSubAccount: null,
+    history: null // Add this
   }
 };
 
@@ -376,6 +378,44 @@ case actions.TOGGLE_SUB_ACCOUNT_STATUS_ERROR:
     errors: {
       ...state.errors,
       toggleStatus: action.payload
+    }
+  };
+
+
+  // Add these cases to your reducer switch statement
+case actions.FETCH_HISTORY_START:
+  return {
+    ...state,
+    loading: {
+      ...state.loading,
+      history: true
+    }
+  };
+  
+case actions.FETCH_HISTORY_SUCCESS:
+  return {
+    ...state,
+    historyData: action.payload,
+    loading: {
+      ...state.loading,
+      history: false
+    },
+    errors: {
+      ...state.errors,
+      history: null
+    }
+  };
+  
+case actions.FETCH_HISTORY_ERROR:
+  return {
+    ...state,
+    loading: {
+      ...state.loading,
+      history: false
+    },
+    errors: {
+      ...state.errors,
+      history: action.payload
     }
   };
       
