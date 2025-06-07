@@ -156,7 +156,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     }
   }
 
-  // Store payment data in sessionStorage for verification page
+  //Store payment data in sessionStorage for verification page
   // const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
   //   const paymentData = {
   //     transactionId: txnId,
@@ -172,6 +172,22 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   //     sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
   //   }
   // }
+
+  const storePaymentData = (txnId: string, method: PaymentMethod, state?: string) => {
+  const paymentData = {
+    transactionId: txnId,
+    transactionDate: formatTransactionDate(),
+    paymentMethod: method,
+    paymentState: state,
+    amount: total,
+    items: savedCartItems.map(item => ({...item})),
+    gateway: method
+  }
+  
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('pendingPaymentVerification', JSON.stringify(paymentData))
+  }
+}
 
   // Handle payment completion for Paystack (redirect to verification)
   // const completePaystackPayment = async (txnId: string, method: PaymentMethod, state?: string) => {
@@ -245,54 +261,70 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   }
 
   // Handle Paystack payment with one-time checkout
-  const handlePaystackPayment = async () => {
-    try {
-      console.log('Starting Paystack payment process...')
-      setPaymentStatus("processing")
+  // const handlePaystackPayment = async () => {
+  //   try {
+  //     console.log('Starting Paystack payment process...')
+  //     setPaymentStatus("processing")
       
-      // Call checkout endpoint
-      const checkoutResponse = await initiateCheckout("paystack")
-      console.log('Checkout response received:', checkoutResponse)
-      window.location.href = checkoutResponse.authorization_url
-       dispatch(clearCart())
+  //     // Call checkout endpoint
+  //     const checkoutResponse = await initiateCheckout("paystack")
+  //     console.log('Checkout response received:', checkoutResponse)
+  //     window.location.href = checkoutResponse.authorization_url
+  //      dispatch(clearCart())
     
       
-      // const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
+  //     // const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
 
-      // Configure Paystack with the reference from API
-      // const paystackConfig = {
-      //   // reference: checkoutResponse.reference,
-      //   email: email,
-      //   amount: checkoutResponse.amount * 100, // Convert to kobo
-      //   publicKey: PAYSTACK_PUBLIC_KEY,
-      //   currency: "NGN" as const,
-      // }
+  //     // Configure Paystack with the reference from API
+  //     // const paystackConfig = {
+  //     //   // reference: checkoutResponse.reference,
+  //     //   email: email,
+  //     //   amount: checkoutResponse.amount * 100, // Convert to kobo
+  //     //   publicKey: PAYSTACK_PUBLIC_KEY,
+  //     //   currency: "NGN" as const,
+  //     // }
 
-      // console.log('Initializing Paystack with config:', paystackConfig)
+  //     // console.log('Initializing Paystack with config:', paystackConfig)
 
-      // const initializePaystack = usePaystackPayment(paystackConfig)
+  //     // const initializePaystack = usePaystackPayment(paystackConfig)
       
-      // initializePaystack({
-      //   ...paystackConfig,
-      //   onSuccess: (response: any) => {
-      //     console.log("Paystack payment success:", response)
-      //     // Redirect to verification page instead of showing success modal
-      //     completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
-      //   },
-      //   onClose: () => {
-      //     console.log("Paystack payment window closed")
-      //     if (paymentStatus !== "success") {
-      //       setPaymentStatus("idle")
-      //     }
-      //   },
-      // })
+  //     // initializePaystack({
+  //     //   ...paystackConfig,
+  //     //   onSuccess: (response: any) => {
+  //     //     console.log("Paystack payment success:", response)
+  //     //     // Redirect to verification page instead of showing success modal
+  //     //     completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
+  //     //   },
+  //     //   onClose: () => {
+  //     //     console.log("Paystack payment window closed")
+  //     //     if (paymentStatus !== "success") {
+  //     //       setPaymentStatus("idle")
+  //     //     }
+  //     //   },
+  //     // })
       
-    } catch (error) {
-      console.error("Paystack payment error:", error)
-      toast.error("Failed to initiate payment. Please try again.")
-      setPaymentStatus("failed")
-    }
+  //   } catch (error) {
+  //     console.error("Paystack payment error:", error)
+  //     toast.error("Failed to initiate payment. Please try again.")
+  //     setPaymentStatus("failed")
+  //   }
+  // }
+
+  const handlePaystackPayment = async () => {
+  try {
+    setPaymentStatus("processing")
+    
+    const checkoutResponse = await initiateCheckout("paystack")
+    // Store payment data before redirecting
+    storePaymentData(checkoutResponse.reference, "paystack", "PENDING")
+    window.location.href = checkoutResponse.authorization_url
+    dispatch(clearCart())
+  } catch (error) {
+    console.error("Paystack payment error:", error)
+    toast.error("Failed to initiate payment. Please try again.")
+    setPaymentStatus("failed")
   }
+}
 
   // Handle Remita payment
   const handleRemitaPayment = async () => {
