@@ -41,18 +41,11 @@ interface CheckoutResponse {
   authorization_url: string
 }
 
-interface PlanCheckoutRequest {
-  payment_gateway: PaymentMethod
-  plan_name: string
-  product_name: string
-}
-
 interface PaymentGatewayModalProps {
   onClose: () => void
   onPay: (method: PaymentMethod, reference?: string, status?: string) => void
   total: number
   email?: string
-  planName?: string
 }
 
 const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
@@ -60,7 +53,6 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   onPay,
   total,
   email = "customer@example.com",
-  planName,
 }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
@@ -138,44 +130,19 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   }
 
   // Call checkout endpoint for one-time payment
-  // const initiateCheckout = async (gateway: PaymentMethod): Promise<CheckoutResponse> => {
-  //   try {
-  //     const api = getApiInstance()
-  //     const response = await api.post('/checkout-one-time-payment/', {
-  //       gateway: gateway
-  //     })
-  //     console.log(response);
-  //     return response.data
-  //   } catch (error) {
-  //     console.error('Checkout API error:', error)
-  //     throw new Error('Failed to initiate checkout process')
-  //   }
-  // }
-
-  // Update the initiateCheckout function
-const initiateCheckout = async (gateway: PaymentMethod, planName?: string): Promise<CheckoutResponse> => {
-  try {
-    const api = getApiInstance()
-    
-    if (planName) {
-      // Handle plan purchase
-      const data: PlanCheckoutRequest = {
-        payment_gateway: gateway,
-        plan_name: planName,
-        product_name: "Vin Check"
-      }
-      const response = await api.post('/checkout-purchase-plan/', data)
+  const initiateCheckout = async (gateway: PaymentMethod): Promise<CheckoutResponse> => {
+    try {
+      const api = getApiInstance()
+      const response = await api.post('/checkout-one-time-payment/', {
+        gateway: gateway
+      })
+      console.log(response);
       return response.data
-    } else {
-      // Handle one-time payment
-      const response = await api.post('/checkout-one-time-payment/', { gateway })
-      return response.data
+    } catch (error) {
+      console.error('Checkout API error:', error)
+      throw new Error('Failed to initiate checkout process')
     }
-  } catch (error) {
-    console.error('Checkout API error:', error)
-    throw new Error('Failed to initiate checkout process')
   }
-}
 
   // Verify payment after successful transaction
   const verifyPayment = async (reference: string, gateway: string) => {
@@ -278,22 +245,55 @@ const initiateCheckout = async (gateway: PaymentMethod, planName?: string): Prom
   }
 
   // Handle Paystack payment with one-time checkout
-const handlePaystackPayment = async () => {
-  try {
-    console.log('Starting Paystack payment process...')
-    setPaymentStatus("processing")
+  const handlePaystackPayment = async () => {
+    try {
+      console.log('Starting Paystack payment process...')
+      setPaymentStatus("processing")
+      
+      // Call checkout endpoint
+      const checkoutResponse = await initiateCheckout("paystack")
+      console.log('Checkout response received:', checkoutResponse)
+      window.location.href = checkoutResponse.authorization_url
+       dispatch(clearCart())
     
-    // Call checkout endpoint with plan name if available
-    const checkoutResponse = await initiateCheckout("paystack", planName) // Changed from props.planName to planName
-    console.log('Checkout response received:', checkoutResponse)
-    window.location.href = checkoutResponse.authorization_url
-    dispatch(clearCart())
-  } catch (error) {
-    console.error("Paystack payment error:", error)
-    toast.error("Failed to initiate payment. Please try again.")
-    setPaymentStatus("failed")
+      
+      // const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_f9b4e7a7d6a574d5c8894efbe6969ef10450aedd"
+
+      // Configure Paystack with the reference from API
+      // const paystackConfig = {
+      //   // reference: checkoutResponse.reference,
+      //   email: email,
+      //   amount: checkoutResponse.amount * 100, // Convert to kobo
+      //   publicKey: PAYSTACK_PUBLIC_KEY,
+      //   currency: "NGN" as const,
+      // }
+
+      // console.log('Initializing Paystack with config:', paystackConfig)
+
+      // const initializePaystack = usePaystackPayment(paystackConfig)
+      
+      // initializePaystack({
+      //   ...paystackConfig,
+      //   onSuccess: (response: any) => {
+      //     console.log("Paystack payment success:", response)
+      //     // Redirect to verification page instead of showing success modal
+      //     completePaystackPayment(response.reference, "paystack", "SUCCESSFUL")
+      //   },
+      //   onClose: () => {
+      //     console.log("Paystack payment window closed")
+      //     if (paymentStatus !== "success") {
+      //       setPaymentStatus("idle")
+      //     }
+      //   },
+      // })
+      
+    } catch (error) {
+      console.error("Paystack payment error:", error)
+      toast.error("Failed to initiate payment. Please try again.")
+      setPaymentStatus("failed")
+    }
   }
-}
+
   // Handle Remita payment
   const handleRemitaPayment = async () => {
     console.log('Starting Remita payment process...')
@@ -343,25 +343,26 @@ const handlePaystackPayment = async () => {
   }
 
   // Handle payment method selection
- const handlePayment = () => {
-  console.log('handlePayment called with:', { 
-    selectedMethod, 
-    isAuthenticated, 
-    user,
-    paymentStatus 
-  })
+  const handlePayment = () => {
+    console.log('handlePayment called with:', { 
+      selectedMethod, 
+      isAuthenticated, 
+      user,
+      paymentStatus 
+    })
 
-  if (!selectedMethod) {
-    console.log('No payment method selected')
-    return
-  }
+    if (!selectedMethod) {
+      console.log('No payment method selected')
+      return
+    }
 
-  if (selectedMethod === "paystack") {
-    handlePaystackPayment()
-  } else {
-    handleRemitaPayment()
+    // Process payment immediately without NIN verification check
+    if (selectedMethod === "paystack") {
+      handlePaystackPayment()
+    } else {
+      handleRemitaPayment()
+    }
   }
-}
 
   return (
     <>
