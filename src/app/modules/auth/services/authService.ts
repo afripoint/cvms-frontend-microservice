@@ -214,21 +214,42 @@ const authService = {
     }
   },
 
+  // setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
+  //   try {
+  //     console.log("Setting new password with token")
+  //     const response = await authAxios.patch("/set-new-password/", {
+  //       uidb64,
+  //       token,
+  //       new_password: newPassword,
+  //     })
+  //     console.log("Password reset successful")
+  //     return response.data
+  //   } catch (error: any) {
+  //     console.error("Password reset error:", error.response?.data || error.message)
+  //     throw error
+  //   }
+  // },
+
   setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
-    try {
-      console.log("Setting new password with token")
-      const response = await authAxios.patch("/set-new-password/", {
-        uidb64,
-        token,
-        new_password: newPassword,
-      })
-      console.log("Password reset successful")
-      return response.data
-    } catch (error: any) {
-      console.error("Password reset error:", error.response?.data || error.message)
-      throw error
-    }
-  },
+  try {
+    console.log("Setting new password with token")
+    
+    // The backend expects 'password' and 'confirm_password' fields
+    // NOT 'new_password' as currently implemented
+    const response = await authAxios.patch("/set-new-password/", {
+      uidb64,
+      token,
+      password: newPassword,           // Changed from 'new_password'
+      confirm_password: newPassword,   // Added required field
+    })
+    
+    console.log("Password reset successful")
+    return response.data
+  } catch (error: any) {
+    console.error("Password reset error:", error.response?.data || error.message)
+    throw error
+  }
+},
 
   sendOtp: async (): Promise<any> => {
     try {
