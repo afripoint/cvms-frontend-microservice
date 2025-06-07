@@ -241,7 +241,8 @@ const AppContent: React.FC = () => {
           {/* Password reset flow */}
           <Route path="/forgot-password" element={<PasswordResetContainer />} />
           <Route path="/reset-password-email-sent" element={<PasswordResetContainer />} />
-          <Route path="/auth/reset-password" element={<PasswordResetContainer />} />
+          <Route path="/auth/reset-password" element={<PasswordResetContainer />} /> 
+          <Route path="/auth/reset-password/:uidb64/:token" element={<PasswordResetContainer />} />
           <Route path="/reset-password-success" element={<PasswordResetContainer />} />
           
           {/* Add settings page route */}
