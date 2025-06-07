@@ -31,46 +31,66 @@ const ResetPassword: React.FC = () => {
 
   // Extract token and uidb64 from URL path or query params
   useEffect(() => {
-    let urlUidb64: string | null = null
-    let urlToken: string | null = null
+  console.log("=== RESET PASSWORD COMPONENT DEBUG ===")
+  console.log("Location pathname:", location.pathname)
+  console.log("Location search:", location.search)
+  console.log("Redux token:", token)
+  console.log("Redux uidb64:", uidb64)
+  
+  let urlUidb64: string | null = null
+  let urlToken: string | null = null
 
-    // Check path parameters first (format: /auth/reset-password/uidb64/token)
-    const pathSegments = location.pathname.split('/')
-    if (pathSegments.length >= 5) {
-      urlUidb64 = pathSegments[3]
-      urlToken = pathSegments[4]
-    }
+  // Method 1: Check useParams (should work for /auth/reset-password/uidb64/token)
+  // const params = new URLSearchParams()
+  const pathSegments = location.pathname.split('/')
+  console.log("Path segments:", pathSegments)
+  
+  if (pathSegments.length >= 5 && pathSegments[2] === 'reset-password') {
+    urlUidb64 = pathSegments[3] // MTY
+    urlToken = pathSegments[4]   // cr1qgr-6e840ed234aba653c30128e836a3f0c7
+    console.log("✅ Extracted from path - uidb64:", urlUidb64, "token:", urlToken)
+  }
 
-    // Fallback to query params (format: ?uidb64=xxx&token=xxx)
-    if (!urlUidb64 || !urlToken) {
-      const queryParams = new URLSearchParams(location.search)
-      urlUidb64 = queryParams.get("uidb64")
-      urlToken = queryParams.get("token")
-    }
-
+  // Method 2: Fallback to query params
+  if (!urlUidb64 || !urlToken) {
+    const queryParams = new URLSearchParams(location.search)
+    urlUidb64 = queryParams.get("uidb64")
+    urlToken = queryParams.get("token")
     if (urlUidb64 && urlToken) {
-      dispatch(setUidb64(urlUidb64))
-      dispatch(setToken(urlToken))
-      
-      // Validate the token
-      dispatch(resetPasswordTokenCheck({ uidb64: urlUidb64, token: urlToken }))
-        .unwrap()
-        .then(() => setIsTokenValid(true))
-        .catch((error) => {
-          console.error("Invalid token:", error)
-          alert("Your password reset link is invalid or has expired. Please request a new one.")
-          dispatch(setStep(PasswordResetStep.REQUEST))
-          navigate("/forgot-password")
-        })
-    } else if (!uidb64 || !token) {
-      alert("Missing password reset information. Please request a new reset link.")
-      dispatch(setStep(PasswordResetStep.REQUEST))
-      navigate("/forgot-password")
-    } else {
-      // Token already exists in Redux state
-      setIsTokenValid(true)
+      console.log("✅ Extracted from query - uidb64:", urlUidb64, "token:", urlToken)
     }
-  }, [dispatch, location, navigate, token, uidb64])
+  }
+
+  if (urlUidb64 && urlToken) {
+    console.log("🔄 Setting tokens in Redux...")
+    dispatch(setUidb64(urlUidb64))
+    dispatch(setToken(urlToken))
+    
+    console.log("🔄 Validating token with backend...")
+    // Validate the token
+    dispatch(resetPasswordTokenCheck({ uidb64: urlUidb64, token: urlToken }))
+      .unwrap()
+      .then(() => {
+        console.log("✅ Token validation successful")
+        setIsTokenValid(true)
+      })
+      .catch((error) => {
+        console.error("❌ Invalid token:", error)
+        alert("Your password reset link is invalid or has expired. Please request a new one.")
+        dispatch(setStep(PasswordResetStep.REQUEST))
+        navigate("/auth/reset-password") // Go back to request form
+      })
+  } else if (!uidb64 || !token) {
+    console.error("❌ Missing password reset information")
+    console.log("Available uidb64:", uidb64, "Available token:", token)
+    alert("Missing password reset information. Please request a new reset link.")
+    dispatch(setStep(PasswordResetStep.REQUEST))
+    navigate("/auth/reset-password")
+  } else {
+    console.log("✅ Using existing tokens from Redux state")
+    setIsTokenValid(true)
+  }
+}, [dispatch, location, navigate, token, uidb64])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
