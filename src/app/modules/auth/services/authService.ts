@@ -217,7 +217,7 @@ const authService = {
   setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
     try {
       console.log("Setting new password with token")
-      const response = await authAxios.post("/set-new-password/", {
+      const response = await authAxios.patch("/set-new-password/", {
         uidb64,
         token,
         new_password: newPassword,
