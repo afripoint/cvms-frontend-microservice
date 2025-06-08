@@ -268,7 +268,7 @@ export const fetchWalletBalance = createAsyncThunk(
   'wallet/fetchBalance',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('https://cvms-microservice.afripointdev.com/vin/wallet-balance-detail/', {
+      const response = await axios.get('https://cvms-staging.afripointdev.com/vin/wallet-balance-detail/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         }
@@ -302,7 +302,7 @@ export const processWalletPayment = createAsyncThunk(
   'wallet/processPayment',
   async ({ amount, items }: { amount: number; items: string[] }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('https://cvms-microservice.afripointdev.com/vin/wallet-payment/', {
+      const response = await axios.post('https://cvms-staging.afripointdev.com/vin/wallet-payment/', {
         amount,
         items
       }, {
