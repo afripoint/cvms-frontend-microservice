@@ -57,7 +57,7 @@ const OTPInputModal: React.FC<OTPInputModalProps> = ({
           <h2 className="text-lg font-semibold text-center mb-4">Verify Your Identity</h2>
           
           <p className="text-sm text-gray-600 mb-6 text-center">
-            Please enter the verification code sent to your {deliveryMethod === "email" ? "email" : "phone"}.
+             We’ve sent the code to both your {deliveryMethod === "email" ? "email" : "phone"} and phone — check both to continue .
           </p>
           
           {errorMessage && (

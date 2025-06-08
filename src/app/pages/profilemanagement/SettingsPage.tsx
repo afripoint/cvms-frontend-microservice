@@ -166,7 +166,7 @@ import { MainLayout } from "../../modules/landing/components/layout"
 import { setActiveTab, fetchSubAccounts } from "../../modules/profileManagement/redux/actions"
 import HistoryTab from "../../modules/profileManagement/components/history/History-Tab"
 import AccountTab from "../../modules/profileManagement/components/account/Account-Tab"
-import WalletTab from "../../modules/profileManagement/components/wallet/components/Wallet-Tabs"
+// import WalletTab from "../../modules/profileManagement/components/wallet/components/Wallet-Tabs"
 import TeamsTab from "../../modules/profileManagement/components/team-management/Team-Tab"
 import type { ThunkDispatch } from "redux-thunk"
 import type { AnyAction } from "redux"
@@ -181,7 +181,7 @@ const SettingsPage = () => {
 
   const tabs = [
     { id: "Account", label: "Account" },
-    { id: "Wallet", label: "Wallet" },
+    // { id: "Wallet", label: "Wallet" },
     { id: "History", label: "History" },
     ...(isBusinessAccount ? [{ id: "Teams", label: "Teams" }] : []),
   ]
@@ -223,7 +223,7 @@ const SettingsPage = () => {
             </div>
 
             {activeTab === "Account" && <AccountTab />}
-            {activeTab === "Wallet" && <WalletTab />}
+            {/* {activeTab === "Wallet" && <WalletTab />} */}
             {activeTab === "History" && <HistoryTab />}
             {activeTab === "Teams" && isBusinessAccount && <TeamsTab />}
           </div>

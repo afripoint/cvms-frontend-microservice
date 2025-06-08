@@ -124,7 +124,7 @@ const toggleError = useSelector((state: RootState) => state.settings.errors.togg
         id: response.id || Date.now(),
         initials,
         status: "Active",
-        lastLogin: "Never",
+        last_Login: "null",
       }
 
       dispatch(addTeamMember(newMember))
@@ -295,9 +295,9 @@ const confirmDelete = async () => {
                 <th className="hidden sm:table-cell text-left py-3 sm:py-4 px-2 sm:px-6 text-gray-600 font-medium text-xs sm:text-sm">
                   Last Login
                 </th>
-                <th className="text-left py-3 sm:py-4 px-2 sm:px-6 text-gray-600 font-medium text-xs sm:text-sm">
+                {/* <th className="text-left py-3 sm:py-4 px-2 sm:px-6 text-gray-600 font-medium text-xs sm:text-sm">
                   Status
-                </th>
+                </th> */}
                 <th className="text-left py-3 sm:py-4 px-2 sm:px-6 text-gray-600 font-medium text-xs sm:text-sm">
                   Action
                 </th>
@@ -413,7 +413,11 @@ const confirmDelete = async () => {
         <button
           onClick={confirmDelete}
           disabled={isTogglingStatus}
-          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 order-1 sm:order-2 text-sm sm:text-base disabled:opacity-50"
+          className={`px-4 py-2 text-white rounded-md order-1 sm:order-2 text-sm sm:text-base disabled:opacity-50 ${
+            currentMember?.status === 'Active' 
+              ? 'bg-red-500 hover:bg-red-600' 
+              : 'bg-green-500 hover:bg-green-600'
+          }`}
         >
           {isTogglingStatus ? (
             <>

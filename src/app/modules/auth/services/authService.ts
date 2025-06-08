@@ -9,7 +9,7 @@ import {
 } from "../../../core/storage/storage"
 import { TeamMember } from "../../profileManagement/types"
 
-const API_URL = "https://cvms-microservice.afripointdev.com/auth"
+const API_URL = "https://cvms-staging.afripointdev.com/auth"
 
 // Define types for HTTP headers
 type HttpHeaders = {
@@ -143,24 +143,35 @@ authAxios.interceptors.response.use(
 )
 
 const authService = {
+
   register: async (userData: RegistrationData): Promise<any> => {
-    try {
-      console.log("Sending registration data:", userData)
-      const response = await authAxios.post("/register/", userData)
-      console.log("Registration successful:", response.data)
-
-      // Store user data for later use
-      if (response.data.user) {
-        appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
-      }
-
-      return response.data
-    } catch (error: any) {
-      console.error("Registration error:", error)
-      throw error
+  try {
+    console.log("Sending registration data:", userData)
+    const response = await authAxios.post("/register/", userData)
+    console.log("Registration successful:", response.data)
+    
+    if (response.data.user) {
+      appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
     }
-  },
-
+    
+    return response.data
+  } catch (error: any) {
+    console.error("Registration error:", error)
+    
+    // Ensure the error has a consistent structure
+    if (error.response) {
+      throw {
+        response: {
+          data: error.response.data,
+          status: error.response.status,
+          statusText: error.response.statusText
+        }
+      }
+    }
+    
+    throw error
+  }
+},
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
       const response = await authAxios.post<LoginResponse>("/login/", { email, password })
@@ -214,21 +225,27 @@ const authService = {
     }
   },
 
+  
   setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
-    try {
-      console.log("Setting new password with token")
-      const response = await authAxios.post("/set-new-password/", {
-        uidb64,
-        token,
-        new_password: newPassword,
-      })
-      console.log("Password reset successful")
-      return response.data
-    } catch (error: any) {
-      console.error("Password reset error:", error.response?.data || error.message)
-      throw error
-    }
-  },
+  try {
+    console.log("Setting new password with token")
+    
+    // The backend expects 'password' and 'confirm_password' fields
+    // NOT 'new_password' as currently implemented
+    const response = await authAxios.patch("/set-new-password/", {
+      uidb64,
+      token,
+      password: newPassword,           // Changed from 'new_password'
+      confirm_password: newPassword,   // Added required field
+    })
+    
+    console.log("Password reset successful")
+    return response.data
+  } catch (error: any) {
+    console.error("Password reset error:", error.response?.data || error.message)
+    throw error
+  }
+},
 
   sendOtp: async (): Promise<any> => {
     try {
@@ -648,6 +665,41 @@ const authService = {
   },
 
  
+// createSubAccount: async (subAccountData: {
+//   first_name: string;
+//   last_name: string;
+//   email: string;
+//   phone_number: string;
+//   role?: string;
+// }): Promise<{ id: number }> => {
+//   try {
+//     const token = getAuthToken();
+//     if (!token) {
+//       throw new Error("User is not authenticated. Please login first.");
+//     }
+
+//     const response = await authAxios.post("/create/sub-account/", {
+//       first_name: subAccountData.first_name,
+//       last_name: subAccountData.last_name,
+//       email: subAccountData.email,
+//       phone_number: subAccountData.phone_number,
+
+//       // ...(subAccountData.phone_number && { phone: subAccountData.phone_number }),
+//       // ...(subAccountData.role && { role: subAccountData.role })
+//     });
+
+//     return response.data;
+//   } catch (error: unknown) {
+//     if (axios.isAxiosError(error)) {
+//       if (error.response?.status === 403) {
+//         throw new Error("You don't have permission to create sub-accounts.");
+//       }
+//       throw new Error(error.response?.data?.message || "Failed to create sub-account");
+//     }
+//     throw new Error("Failed to create sub-account");
+//   }
+// },
+ 
 createSubAccount: async (subAccountData: {
   first_name: string;
   last_name: string;
@@ -666,23 +718,18 @@ createSubAccount: async (subAccountData: {
       last_name: subAccountData.last_name,
       email: subAccountData.email,
       phone_number: subAccountData.phone_number,
-
-      // ...(subAccountData.phone_number && { phone: subAccountData.phone_number }),
-      // ...(subAccountData.role && { role: subAccountData.role })
     });
 
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 403) {
-        throw new Error("You don't have permission to create sub-accounts.");
-      }
-      throw new Error(error.response?.data?.message || "Failed to create sub-account");
+      // Re-throw the full axios error so the action creator can handle detailed error parsing
+      throw error;
     }
     throw new Error("Failed to create sub-account");
   }
 },
- 
+
 listSubAccounts: async (): Promise<TeamMember[]> => {
   try {
     const token = getAuthToken();
@@ -726,7 +773,7 @@ getSubAccountDetails: async (slug: string): Promise<TeamMember> => {
       role: member.role || 'Team Member',
       status: member.is_active ? 'Active' : 'Inactive',
       initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
-      lastLogin: member.last_login || 'Never',
+      last_Login: member.last_login || 'Never',
       slug: member.slug
     };
   } catch (error: unknown) {
@@ -756,7 +803,7 @@ updateSubAccount: async (slug: string, updateData: {
       role: member.role || 'Team Member',
       status: member.is_active ? 'Active' : 'Inactive',
       initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
-      lastLogin: member.last_login || 'Never',
+      last_Login: member.last_login || 'Never',
       slug: member.slug
     };
   } catch (error: unknown) {

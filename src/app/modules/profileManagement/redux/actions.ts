@@ -1,5 +1,7 @@
-import { authService } from "../../auth/services"
+import axios from "axios"
+import authService from "../../auth/services/authService" // Add this import
 import type { UserData, TeamMember } from "../types/index"
+import { AppThunk } from "../../../core/store"
 
 export const SET_ACTIVE_TAB = "settings/SET_ACTIVE_TAB"
 export const UPDATE_USER_DATA = "settings/UPDATE_USER_DATA"
@@ -26,6 +28,11 @@ export const UPDATE_SUB_ACCOUNT_ERROR = 'settings/UPDATE_SUB_ACCOUNT_ERROR';
 export const TOGGLE_SUB_ACCOUNT_STATUS_START = 'settings/TOGGLE_SUB_ACCOUNT_STATUS_START';
 export const TOGGLE_SUB_ACCOUNT_STATUS_SUCCESS = 'settings/TOGGLE_SUB_ACCOUNT_STATUS_SUCCESS';
 export const TOGGLE_SUB_ACCOUNT_STATUS_ERROR = 'settings/TOGGLE_SUB_ACCOUNT_STATUS_ERROR';
+
+export const FETCH_HISTORY_START = 'settings/FETCH_HISTORY_START';
+export const FETCH_HISTORY_SUCCESS = 'settings/FETCH_HISTORY_SUCCESS';
+export const FETCH_HISTORY_ERROR = 'settings/FETCH_HISTORY_ERROR';
+
 
 export const setActiveTab = (tab: string) => ({
   type: SET_ACTIVE_TAB,
@@ -95,15 +102,15 @@ export const fetchSubAccounts = () => async (dispatch: any) => {
   }
 }
 
-export const createSubAccount =
-  (subAccountData: {
-    first_name: string
-    last_name: string
-    email: string
-    phone_number: string
-    role?: string
-  }) =>
-  async (dispatch: any) => {
+// Updated createSubAccount action creator in actions.ts
+// Fixed version of the error handling section in createSubAccount
+export const createSubAccount = (subAccountData: {
+  first_name: string
+  last_name: string
+  email: string
+  phone_number: string
+  role?: string
+}) => async (dispatch: any) => {
     dispatch({ type: CREATE_SUB_ACCOUNT_START })
 
     try {
@@ -118,7 +125,7 @@ export const createSubAccount =
         role: subAccountData.role || "Team Member",
         status: "Active",
         initials: `${subAccountData.first_name[0]}${subAccountData.last_name[0]}`.toUpperCase(),
-        lastLogin: "Never",
+        last_Login: "null",
       }
 
       dispatch({ type: CREATE_SUB_ACCOUNT_SUCCESS })
@@ -130,10 +137,53 @@ export const createSubAccount =
 
       let errorMessage = "Failed to create sub-account"
 
-      if (error?.response?.status === 403) {
+      // Handle different error response formats
+      if (error?.response?.data) {
+        const errorData = error.response.data
+
+        // Handle simple message format: {"message": "..."}
+        if (errorData.message) {
+          errorMessage = errorData.message
+        }
+        // Handle field-specific errors: {"phone_number": ["error message"], "email": ["error message"]}
+        else if (typeof errorData === 'object' && !Array.isArray(errorData)) {
+          const fieldErrors: string[] = []
+          
+          // Extract field-specific error messages - FIXED: Use Object.values instead
+          Object.values(errorData).forEach((messages) => {
+            if (Array.isArray(messages)) {
+              // Handle array of error messages
+              messages.forEach((msg: any) => {
+                if (typeof msg === 'string') {
+                  fieldErrors.push(msg)
+                }
+              })
+            } else if (typeof messages === 'string') {
+              // Handle string error messages
+              fieldErrors.push(messages)
+            }
+          })
+          
+          if (fieldErrors.length > 0) {
+            errorMessage = fieldErrors.join('. ')
+          }
+        }
+        // Handle array of errors: ["error1", "error2"]
+        else if (Array.isArray(errorData)) {
+          errorMessage = errorData.join('. ')
+        }
+      }
+      // Handle HTTP status codes
+      else if (error?.response?.status === 400) {
+        errorMessage = "Invalid data provided. Please check your input."
+      } else if (error?.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again."
+      } else if (error?.response?.status === 403) {
         errorMessage = "You do not have permission to create sub-accounts."
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
+      } else if (error?.response?.status === 409) {
+        errorMessage = "A conflict occurred. This account may already exist."
+      } else if (error?.response?.status >= 500) {
+        errorMessage = "Server error occurred. Please try again later."
       } else if (error?.message) {
         errorMessage = error.message
       }
@@ -146,6 +196,58 @@ export const createSubAccount =
       throw new Error(errorMessage)
     }
   }
+
+// export const createSubAccount =
+//   (subAccountData: {
+//     first_name: string
+//     last_name: string
+//     email: string
+//     phone_number: string
+//     role?: string
+//   }) =>
+//   async (dispatch: any) => {
+//     dispatch({ type: CREATE_SUB_ACCOUNT_START })
+
+//     try {
+//       console.log("Creating sub-account with data:", subAccountData)
+//       const response = await authService.createSubAccount(subAccountData)
+
+//       const newMember: TeamMember = {
+//         id: response.id,
+//         name: `${subAccountData.first_name} ${subAccountData.last_name}`,
+//         email: subAccountData.email,
+//         phone_number: subAccountData.phone_number || "",
+//         role: subAccountData.role || "Team Member",
+//         status: "Active",
+//         initials: `${subAccountData.first_name[0]}${subAccountData.last_name[0]}`.toUpperCase(),
+//         last_Login: "null",
+//       }
+
+//       dispatch({ type: CREATE_SUB_ACCOUNT_SUCCESS })
+//       dispatch(addTeamMember(newMember))
+
+//       return newMember
+//     } catch (error: any) {
+//       console.error("Error creating sub-account:", error)
+
+//       let errorMessage = "Failed to create sub-account"
+
+//       if (error?.response?.status === 403) {
+//         errorMessage = "You do not have permission to create sub-accounts."
+//       } else if (error?.response?.data?.message) {
+//         errorMessage = error.response.data.message
+//       } else if (error?.message) {
+//         errorMessage = error.message
+//       }
+
+//       dispatch({
+//         type: CREATE_SUB_ACCOUNT_ERROR,
+//         payload: errorMessage,
+//       })
+
+//       throw new Error(errorMessage)
+//     }
+//   }
 
 export const fetchSubAccountDetails = (slug: string) => async (dispatch: any) => {
   dispatch({ type: FETCH_SUB_ACCOUNT_DETAILS_START });
@@ -240,23 +342,149 @@ export const toggleSubAccountStatus = (slug: string) => async (dispatch: any) =>
   }
 };
 
+// Helper function to get auth token (extracted from authService)
+const getAuthToken = (): string | null => {
+  // First check for direct token
+  const directToken = localStorage.getItem("authToken")
+  if (directToken) {
+    try {
+      // If it's JSON, parse it (in case it was accidentally stringified)
+      return JSON.parse(directToken)
+    } catch (e) {
+      // If it's not JSON, just return it as is
+      return directToken
+    }
+  }
 
-// export const toggleSubAccountStatus = (slug: string) => async (dispatch: any) => {
-//   dispatch({ type: TOGGLE_SUB_ACCOUNT_STATUS_START });
+  // Then check token data object
+  const StorageKeys = {
+    TOKEN_DATA: 'token_data', // Adjust this to match your actual storage key
+    USER_DATA: 'user_data'
+  }
+  
+  const tokenDataStr = localStorage.getItem(StorageKeys.TOKEN_DATA)
+  if (tokenDataStr) {
+    try {
+      const tokenData = JSON.parse(tokenDataStr)
+      return tokenData?.access_token || null
+    } catch (e) {
+      console.error("Error parsing token data:", e)
+      return null
+    }
+  }
+
+  return null
+}
+
+// export const fetchHistory = (): AppThunk => async (dispatch) => {
+//   dispatch({ type: FETCH_HISTORY_START });
   
 //   try {
-//     const result = await authService.toggleSubAccountStatus(slug);
-//     dispatch({ 
-//       type: TOGGLE_SUB_ACCOUNT_STATUS_SUCCESS,
-//       payload: { slug, is_active: result.is_active }
+//     // Use the local getAuthToken helper function
+//     const token = getAuthToken();
+    
+//     if (!token) {
+//       throw new Error('No authentication token available');
+//     }
+
+//     const response = await axios.get('https://cvms-microservice.afripointdev.com/vin/vin-search-history/', {
+//       headers: {
+//         'Authorization': `Bearer ${token}`
+//       }
 //     });
-//     return result;
+    
+//     const formattedData = response.data.vin_searches_history.map((item: any) => ({
+//       vin: item.vin,
+//       make: item.make || 'Unknown',
+//       date: new Date(item.created_at).toLocaleDateString(),
+//       status: item.status,
+//       created_at: item.created_at
+//     }));
+    
+//     dispatch({
+//       type: FETCH_HISTORY_SUCCESS,
+//       payload: formattedData
+//     });
+    
+//     return formattedData;
 //   } catch (error: any) {
-//     const errorMessage = error?.message || 'Failed to toggle sub-account status';
-//     dispatch({ 
-//       type: TOGGLE_SUB_ACCOUNT_STATUS_ERROR,
+//     let errorMessage = 'Failed to fetch history data';
+    
+//     if (error?.response?.status === 401) {
+//       errorMessage = 'Authentication failed. Please log in again.';
+//     } else if (error?.response?.data?.message) {
+//       errorMessage = error.response.data.message;
+//     } else if (error?.message) {
+//       errorMessage = error.message;
+//     }
+    
+//     dispatch({
+//       type: FETCH_HISTORY_ERROR,
 //       payload: errorMessage
 //     });
-//     throw error;
+    
+//     throw new Error(errorMessage);
 //   }
 // };
+
+
+export const fetchHistory = (): AppThunk => async (dispatch) => {
+  dispatch({ type: FETCH_HISTORY_START });
+  
+  try {
+    // Use the local getAuthToken helper function
+    const token = getAuthToken();
+    
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    const response = await axios.get('https://cvms-staging.afripointdev.com/vin/vin-search-history/', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const formattedData = response.data.vin_searches_history.map((item: any) => ({
+      vin: item.vin,
+      make: item.make || 'Unknown',
+      date: new Date(item.created_at).toLocaleDateString(),
+      status: item.status,
+      created_at: item.created_at,
+      // Include all certificate data
+      model: item.model,
+      vehicle_year: item.vehicle_year,
+      engine_type: item.engine_type,
+      vreg: item.vreg,
+      vehicle_type: item.vehicle_type,
+      origin_country: item.origin_country,
+      payment_status: item.payment_status,
+      qr_code_base64: item.qr_code_base64,
+      ref_number: item.ref_number
+    }));
+    
+    dispatch({
+      type: FETCH_HISTORY_SUCCESS,
+      payload: formattedData
+    });
+    
+    return formattedData;
+  } catch (error: any) {
+    let errorMessage = 'Failed to fetch history data';
+    
+    if (error?.response?.status === 401) {
+      errorMessage = 'Authentication failed. Please log in again.';
+    } else if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+    
+    dispatch({
+      type: FETCH_HISTORY_ERROR,
+      payload: errorMessage
+    });
+    
+    throw new Error(errorMessage);
+  }
+};

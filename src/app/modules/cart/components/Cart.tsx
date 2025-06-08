@@ -7,7 +7,7 @@ import type { RootState, AppDispatch } from "../../../core/store"
 import { useNavigate } from "react-router-dom"
 import { removeVinFromCartAsync, clearError, applyPromoCode } from "../redux/slices/cartSlice"
 import { useState, useEffect } from "react"
-import { fetchWalletBalance } from "../../wallet/redux/slices/walletSlice"
+// import { fetchWalletBalance } from "../../wallet/redux/slices/walletSlice"
 
 const Cart: React.FC = () => {
   const {
@@ -49,10 +49,10 @@ const Cart: React.FC = () => {
   const navigate = useNavigate()
   const { isLoading: walletLoading } = useSelector((state: RootState) => state.wallet)
 
-  useEffect(() => {
-    // Fetch wallet balance when component mounts
-    dispatch(fetchWalletBalance())
-  }, [dispatch])
+  // useEffect(() => {
+  //   // Fetch wallet balance when component mounts
+  //   dispatch(fetchWalletBalance())
+  // }, [dispatch])
 
   const orderTotal = totalPrice - discount
 
@@ -71,7 +71,7 @@ const Cart: React.FC = () => {
     
     try {
       // Fetch latest wallet balance before proceeding to checkout
-      await dispatch(fetchWalletBalance()).unwrap()
+      // await dispatch(fetchWalletBalance()).unwrap()
       
       // Navigate to payment method page
       navigate("/payment-method")

@@ -780,10 +780,10 @@ const AccountTab = () => {
     setFormValues((prev) => ({ ...prev, additionalPhone: e.target.value }))
   }
 
-  const handleAccountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as AccountType
-    setFormValues((prev) => ({ ...prev, accountType: value }))
-  }
+  // const handleAccountTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const value = e.target.value as AccountType
+  //   setFormValues((prev) => ({ ...prev, accountType: value }))
+  // }
 
   const toggleEdit = () => {
     setIsEditing(!isEditing)
@@ -917,7 +917,7 @@ const AccountTab = () => {
           </div>
         )}
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Account Type (Demo Selector)</label>
           <select
             onChange={handleAccountTypeChange}
@@ -929,7 +929,7 @@ const AccountTab = () => {
             <option value="Agent">Agent</option>
             <option value="Company">Company</option>
           </select>
-        </div>
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
@@ -1082,13 +1082,13 @@ const AccountTab = () => {
         </div>
 
         {/* Debug Section - Remove in production */}
-        <div className="bg-gray-100 p-4 rounded-md text-xs">
+        {/* <div className="bg-gray-100 p-4 rounded-md text-xs">
           <h4 className="font-bold mb-2">Debug Info:</h4>
           <p>Profile Image: {profileImageFile ? `${profileImageFile.name} (${formatFileSize(profileImageFile.size)})` : 'None'}</p>
           <p>CAC File: {cacFile ? `${cacFile.name} (${formatFileSize(cacFile.size)})` : 'None'}</p>
           <p>Authorization File: {authorizationFile ? `${authorizationFile.name} (${formatFileSize(authorizationFile.size)})` : 'None'}</p>
           <p>Status File: {statusFile ? `${statusFile.name} (${formatFileSize(statusFile.size)})` : 'None'}</p>
-        </div>
+        </div> */}
 
         <div className="pt-4 space-y-3">
           <button

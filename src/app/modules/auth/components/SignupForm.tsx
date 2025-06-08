@@ -658,7 +658,7 @@ const SignUpForm: React.FC = () => {
         </div>
       </div>
 
-      <OTPDeliveryModal
+      {/* <OTPDeliveryModal
         isOpen={showOTPModal}
         onClose={() => setShowOTPModal(false)}
         onSubmit={handleSubmit}
@@ -670,7 +670,21 @@ const SignUpForm: React.FC = () => {
         }
         hasPhone={!!formData.phone_number}
         errorMessage={registrationError} // Pass the error message
-      />
+      /> */}
+
+      <OTPDeliveryModal
+  isOpen={showOTPModal}
+  onClose={() => setShowOTPModal(false)}
+  onSubmit={handleSubmit}
+  email={formData.email}
+  phone={
+    formData.phone_number
+      ? `${selectedCountry.dialCode} ${formData.phone_number}`
+      : ""
+  }
+  hasPhone={!!formData.phone_number}
+  errorMessage={registrationError} // This is where the error is passed
+/>
     </div>
   );
 };

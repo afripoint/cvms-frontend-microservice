@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -50,6 +50,10 @@ const VerifyPayment: React.FC<VerifyPaymentProps> = ({ onVerify }) => {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
+  // const location = useLocation();
+  // const {txnId} = location.state
+  const urlParams = new URLSearchParams(window.location.search);
+const reference = urlParams.get('reference');
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -58,7 +62,7 @@ const VerifyPayment: React.FC<VerifyPaymentProps> = ({ onVerify }) => {
   const getApiInstance = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     return axios.create({
-      baseURL: 'https://cvms-microservice.afripointdev.com/vin',
+      baseURL: 'https://cvms-staging.afripointdev.com/vin',
       headers: {
         'Authorization': token ? `Bearer ${token}` : undefined
       }
@@ -84,8 +88,12 @@ const VerifyPayment: React.FC<VerifyPaymentProps> = ({ onVerify }) => {
     }
   }, [navigate]);
 
+  // console.log(reference)
+
   // Verify payment API call
-  const verifyPayment = async (reference: string, gateway: string) => {
+  const verifyPayment = async (gateway: string) => {
+    // console.log(txnId)
+    // console.log(gateway)
     try {
       const api = getApiInstance();
       const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`);
@@ -108,7 +116,7 @@ const VerifyPayment: React.FC<VerifyPaymentProps> = ({ onVerify }) => {
       console.log('Starting payment verification for:', paymentData.transactionId);
       
       // Call the verification API
-      const verificationResult = await verifyPayment(paymentData.transactionId, paymentData.gateway);
+      const verificationResult = await verifyPayment(paymentData.gateway);
       console.log('Verification result:', verificationResult);
       
       setIsLoading(false);

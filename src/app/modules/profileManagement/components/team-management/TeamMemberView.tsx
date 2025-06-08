@@ -55,7 +55,7 @@ const TeamMemberView = ({ member, onClose }: TeamMemberViewProps) => {
             
             <div>
               <p className="text-xs sm:text-sm text-gray-500">Last Login</p>
-              <p className="font-medium text-sm sm:text-base">{member.lastLogin || 'Never'}</p>
+              <p className="font-medium text-sm sm:text-base">{member.last_Login || 'null'}</p>
             </div>
           </div>
         </div>

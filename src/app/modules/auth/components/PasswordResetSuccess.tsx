@@ -1,19 +1,16 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useNavigate } from "react-router-dom"
 import { useDispatch } from "react-redux"
 import { resetState } from "../redux/slices/passwordResetSlice"
-// import { resetState } from "../../../redux/slices/passwordResetSlice"
 
 const PasswordResetSuccess: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const handleLogin = () => {
-    // Reset the password reset state
     dispatch(resetState())
-    // Navigate to login
     navigate("/login")
   }
 
@@ -28,7 +25,7 @@ const PasswordResetSuccess: React.FC = () => {
 
         <h2 className="text-xl font-semibold mb-2">Password Changed!</h2>
         <p className="text-gray-500 mb-6">
-          Your password has been reset successfully. You can now log in with your new password.
+          Your password has been reset successfully. You can now login with your new password.
         </p>
 
         <button
@@ -43,4 +40,3 @@ const PasswordResetSuccess: React.FC = () => {
 }
 
 export default PasswordResetSuccess
-

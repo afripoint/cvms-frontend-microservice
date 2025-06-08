@@ -153,6 +153,8 @@ import VerifyPayment from './app/modules/payment/components/modal/Verify-Payment
 import UserGuidePage from './app/pages/Guide';
 import CookiePolicy from './app/pages/Cookie-Policy';
 import Article from './app/modules/landing/components/layout/components/Articles';
+// import SuccessPaymentPage from './app/modules/payment/components/modal/SuccessPaymentPage';
+// import PaymentCallback from './app/modules/payment/components/modal/paymentCallback';
 
 // Lazy load components
 const Certificate = lazy(() => import('./app/modules/report/pages/CertificatePage'));
@@ -239,8 +241,9 @@ const AppContent: React.FC = () => {
           {/* Password reset flow */}
           <Route path="/forgot-password" element={<PasswordResetContainer />} />
           <Route path="/reset-password-email-sent" element={<PasswordResetContainer />} />
-          <Route path="/auth/reset-password" element={<PasswordResetContainer />} />
-          <Route path="/reset-password-success" element={<PasswordResetContainer />} />
+          <Route path="/auth/reset-password" element={<PasswordResetContainer />} /> 
+          <Route path="/auth/reset-password/:uidb64/:token" element={<PasswordResetContainer />} />
+          <Route path="/auth/reset-password-success" element={<PasswordResetContainer />} />
           
           {/* Add settings page route */}
           <Route path="/settings" element={<SettingsPage />} />
@@ -260,7 +263,12 @@ const AppContent: React.FC = () => {
           <Route path="/payment-method" element={<PaymentMethodPage />} />
           <Route path="/certificate" element={<Certificate />} />
           <Route path="/verify-certificate" element={<VerifyCertificatePage />} />
-          <Route path="/payment-success" element={<VerifyPayment/>} />
+          <Route path="/verifypayment" element={<VerifyPayment/>} />
+          {/*<Route path="/paymentcallback" element={<PaymentCallback/>} />
+          <Route path="/success" element={<SuccessPaymentPage/>} />  */}
+
+
+
 
           
           {/* Fallback route */}

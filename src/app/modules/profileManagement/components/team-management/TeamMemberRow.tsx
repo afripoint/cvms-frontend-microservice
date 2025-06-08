@@ -30,8 +30,8 @@ const TeamMemberRow: React.FC<TeamMemberRowProps> = ({
       </td>
       {/* <td className="hidden md:table-cell py-4 px-6 text-gray-600">{member.role}</td>*/}
       <td className="lg:table-cell py-4 px-6 text-gray-600">{member.phone_number}</td> 
-      <td className="hidden sm:table-cell py-3 sm:py-4 px-2 sm:px-6 text-gray-600 text-xs sm:text-sm">{member.lastLogin || 'Never'}</td>
-      <td className="py-3 sm:py-4 px-2 sm:px-6">
+      <td className="hidden sm:table-cell py-3 sm:py-4 px-2 sm:px-6 text-gray-600 text-xs sm:text-sm">{member.last_Login || 'null'}</td>
+      {/* <td className="py-3 sm:py-4 px-2 sm:px-6">
         <span className={`inline-flex items-center ${
           member.status === 'Active' 
             ? 'bg-green-100 text-green-600' 
@@ -39,7 +39,7 @@ const TeamMemberRow: React.FC<TeamMemberRowProps> = ({
           } text-xs px-2 sm:px-3 py-1 rounded-full`}>
           • {member.status}
         </span>
-      </td>
+      </td> */}
       <td className="py-3 sm:py-4 px-2 sm:px-4">
         <div className="flex space-x-1 sm:space-x-2">
           <button 
