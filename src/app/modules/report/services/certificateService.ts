@@ -305,7 +305,7 @@ export const generateCertificate = async (data: CertificateData) => {
 
         <!-- Certificate Number -->
         <div class="section">
-          <h3 class="section-title">Registration Number</h3>
+          <h3 class="section-title">Reference Number</h3>
           <p class="info-item">${data.certificateNumber}</p>
         </div>
 

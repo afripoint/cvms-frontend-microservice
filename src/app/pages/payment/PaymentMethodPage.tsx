@@ -291,7 +291,7 @@ const PaymentMethodPage: React.FC = () => {
                 </div>
               </div>
 
-              <div
+              {/* <div
                 className={`cursor-pointer rounded-lg flex items-center relative transition-all duration-200 ${
                   selectedMethod === "purchase" ? "" : "border-gray-200"
                 }`}
@@ -318,7 +318,7 @@ const PaymentMethodPage: React.FC = () => {
                 <span className="absolute right-0 mr-2 bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded">
                   Recommended
                 </span>
-              </div>
+              </div> */}
 
               <button
                 className={`w-full py-2 rounded-lg font-semibold transition ${
