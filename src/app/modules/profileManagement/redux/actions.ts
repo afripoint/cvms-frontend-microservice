@@ -125,7 +125,7 @@ export const createSubAccount =
         role: subAccountData.role || "Team Member",
         status: "Active",
         initials: `${subAccountData.first_name[0]}${subAccountData.last_name[0]}`.toUpperCase(),
-        lastLogin: "Never",
+        last_Login: "null",
       }
 
       dispatch({ type: CREATE_SUB_ACCOUNT_SUCCESS })

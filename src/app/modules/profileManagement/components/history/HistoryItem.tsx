@@ -10,7 +10,9 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 sm:p-4 border-b bg-gray-50 rounded-lg">
       <div className="mb-2 sm:mb-0">
+        <h4 className="font-medium">{item.vin}</h4>
         <h4 className="font-medium">{item.make}</h4>
+
         <div className="text-gray-500 text-xs sm:text-sm">
           {item.amount} • {item.date}
         </div>

@@ -747,7 +747,7 @@ getSubAccountDetails: async (slug: string): Promise<TeamMember> => {
       role: member.role || 'Team Member',
       status: member.is_active ? 'Active' : 'Inactive',
       initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
-      lastLogin: member.last_login || 'Never',
+      last_Login: member.last_login || 'Never',
       slug: member.slug
     };
   } catch (error: unknown) {
@@ -777,7 +777,7 @@ updateSubAccount: async (slug: string, updateData: {
       role: member.role || 'Team Member',
       status: member.is_active ? 'Active' : 'Inactive',
       initials: `${member.first_name[0]}${member.last_name[0]}`.toUpperCase(),
-      lastLogin: member.last_login || 'Never',
+      last_Login: member.last_login || 'Never',
       slug: member.slug
     };
   } catch (error: unknown) {

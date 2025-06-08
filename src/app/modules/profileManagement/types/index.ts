@@ -134,7 +134,7 @@ export interface TeamMember {
   phone_number: string;
   role: string;
   status: 'Active' | 'Inactive';
-  lastLogin?: string;
+  last_Login?: string;
   initials: string;
   slug?: string;
   is_active?: boolean;
