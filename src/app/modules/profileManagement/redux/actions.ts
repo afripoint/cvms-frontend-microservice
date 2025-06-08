@@ -102,15 +102,15 @@ export const fetchSubAccounts = () => async (dispatch: any) => {
   }
 }
 
-export const createSubAccount =
-  (subAccountData: {
-    first_name: string
-    last_name: string
-    email: string
-    phone_number: string
-    role?: string
-  }) =>
-  async (dispatch: any) => {
+// Updated createSubAccount action creator in actions.ts
+// Fixed version of the error handling section in createSubAccount
+export const createSubAccount = (subAccountData: {
+  first_name: string
+  last_name: string
+  email: string
+  phone_number: string
+  role?: string
+}) => async (dispatch: any) => {
     dispatch({ type: CREATE_SUB_ACCOUNT_START })
 
     try {
@@ -137,10 +137,53 @@ export const createSubAccount =
 
       let errorMessage = "Failed to create sub-account"
 
-      if (error?.response?.status === 403) {
+      // Handle different error response formats
+      if (error?.response?.data) {
+        const errorData = error.response.data
+
+        // Handle simple message format: {"message": "..."}
+        if (errorData.message) {
+          errorMessage = errorData.message
+        }
+        // Handle field-specific errors: {"phone_number": ["error message"], "email": ["error message"]}
+        else if (typeof errorData === 'object' && !Array.isArray(errorData)) {
+          const fieldErrors: string[] = []
+          
+          // Extract field-specific error messages - FIXED: Use Object.values instead
+          Object.values(errorData).forEach((messages) => {
+            if (Array.isArray(messages)) {
+              // Handle array of error messages
+              messages.forEach((msg: any) => {
+                if (typeof msg === 'string') {
+                  fieldErrors.push(msg)
+                }
+              })
+            } else if (typeof messages === 'string') {
+              // Handle string error messages
+              fieldErrors.push(messages)
+            }
+          })
+          
+          if (fieldErrors.length > 0) {
+            errorMessage = fieldErrors.join('. ')
+          }
+        }
+        // Handle array of errors: ["error1", "error2"]
+        else if (Array.isArray(errorData)) {
+          errorMessage = errorData.join('. ')
+        }
+      }
+      // Handle HTTP status codes
+      else if (error?.response?.status === 400) {
+        errorMessage = "Invalid data provided. Please check your input."
+      } else if (error?.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again."
+      } else if (error?.response?.status === 403) {
         errorMessage = "You do not have permission to create sub-accounts."
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
+      } else if (error?.response?.status === 409) {
+        errorMessage = "A conflict occurred. This account may already exist."
+      } else if (error?.response?.status >= 500) {
+        errorMessage = "Server error occurred. Please try again later."
       } else if (error?.message) {
         errorMessage = error.message
       }
@@ -153,6 +196,58 @@ export const createSubAccount =
       throw new Error(errorMessage)
     }
   }
+
+// export const createSubAccount =
+//   (subAccountData: {
+//     first_name: string
+//     last_name: string
+//     email: string
+//     phone_number: string
+//     role?: string
+//   }) =>
+//   async (dispatch: any) => {
+//     dispatch({ type: CREATE_SUB_ACCOUNT_START })
+
+//     try {
+//       console.log("Creating sub-account with data:", subAccountData)
+//       const response = await authService.createSubAccount(subAccountData)
+
+//       const newMember: TeamMember = {
+//         id: response.id,
+//         name: `${subAccountData.first_name} ${subAccountData.last_name}`,
+//         email: subAccountData.email,
+//         phone_number: subAccountData.phone_number || "",
+//         role: subAccountData.role || "Team Member",
+//         status: "Active",
+//         initials: `${subAccountData.first_name[0]}${subAccountData.last_name[0]}`.toUpperCase(),
+//         last_Login: "null",
+//       }
+
+//       dispatch({ type: CREATE_SUB_ACCOUNT_SUCCESS })
+//       dispatch(addTeamMember(newMember))
+
+//       return newMember
+//     } catch (error: any) {
+//       console.error("Error creating sub-account:", error)
+
+//       let errorMessage = "Failed to create sub-account"
+
+//       if (error?.response?.status === 403) {
+//         errorMessage = "You do not have permission to create sub-accounts."
+//       } else if (error?.response?.data?.message) {
+//         errorMessage = error.response.data.message
+//       } else if (error?.message) {
+//         errorMessage = error.message
+//       }
+
+//       dispatch({
+//         type: CREATE_SUB_ACCOUNT_ERROR,
+//         payload: errorMessage,
+//       })
+
+//       throw new Error(errorMessage)
+//     }
+//   }
 
 export const fetchSubAccountDetails = (slug: string) => async (dispatch: any) => {
   dispatch({ type: FETCH_SUB_ACCOUNT_DETAILS_START });

@@ -143,7 +143,7 @@ authAxios.interceptors.response.use(
 )
 
 const authService = {
-  
+
   register: async (userData: RegistrationData): Promise<any> => {
   try {
     console.log("Sending registration data:", userData)
@@ -665,6 +665,41 @@ const authService = {
   },
 
  
+// createSubAccount: async (subAccountData: {
+//   first_name: string;
+//   last_name: string;
+//   email: string;
+//   phone_number: string;
+//   role?: string;
+// }): Promise<{ id: number }> => {
+//   try {
+//     const token = getAuthToken();
+//     if (!token) {
+//       throw new Error("User is not authenticated. Please login first.");
+//     }
+
+//     const response = await authAxios.post("/create/sub-account/", {
+//       first_name: subAccountData.first_name,
+//       last_name: subAccountData.last_name,
+//       email: subAccountData.email,
+//       phone_number: subAccountData.phone_number,
+
+//       // ...(subAccountData.phone_number && { phone: subAccountData.phone_number }),
+//       // ...(subAccountData.role && { role: subAccountData.role })
+//     });
+
+//     return response.data;
+//   } catch (error: unknown) {
+//     if (axios.isAxiosError(error)) {
+//       if (error.response?.status === 403) {
+//         throw new Error("You don't have permission to create sub-accounts.");
+//       }
+//       throw new Error(error.response?.data?.message || "Failed to create sub-account");
+//     }
+//     throw new Error("Failed to create sub-account");
+//   }
+// },
+ 
 createSubAccount: async (subAccountData: {
   first_name: string;
   last_name: string;
@@ -683,23 +718,18 @@ createSubAccount: async (subAccountData: {
       last_name: subAccountData.last_name,
       email: subAccountData.email,
       phone_number: subAccountData.phone_number,
-
-      // ...(subAccountData.phone_number && { phone: subAccountData.phone_number }),
-      // ...(subAccountData.role && { role: subAccountData.role })
     });
 
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 403) {
-        throw new Error("You don't have permission to create sub-accounts.");
-      }
-      throw new Error(error.response?.data?.message || "Failed to create sub-account");
+      // Re-throw the full axios error so the action creator can handle detailed error parsing
+      throw error;
     }
     throw new Error("Failed to create sub-account");
   }
 },
- 
+
 listSubAccounts: async (): Promise<TeamMember[]> => {
   try {
     const token = getAuthToken();
