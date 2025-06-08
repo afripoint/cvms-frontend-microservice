@@ -91,10 +91,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, vehicle, 
               <span className="text-gray-600">VIN:</span>
               <span className="font-medium">{vehicle.vin}</span>
             </div>
-            <div className="flex justify-between mb-2">
+            {/* <div className="flex justify-between mb-2">
               <span className="text-gray-600">Item:</span>
-              <span className="font-medium">CVMS Standard Report</span>
-            </div>
+              <span className="font-
+              medium">CVMS Standard Report</span>
+            </div> */}
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Price:</span>
               <span className="font-medium">₦7,500.00</span>

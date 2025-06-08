@@ -143,25 +143,7 @@ authAxios.interceptors.response.use(
 )
 
 const authService = {
-  // register: async (userData: RegistrationData): Promise<any> => {
-  //   try {
-  //     console.log("Sending registration data:", userData)
-  //     const response = await authAxios.post("/register/", userData)
-  //     console.log("Registration successful:", response.data)
-
-  //     // Store user data for later use
-  //     if (response.data.user) {
-  //       appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
-  //     }
-
-  //     return response.data
-  //   } catch (error: any) {
-  //     console.error("Registration error:", error)
-  //     throw error
-  //   }
-  // },
-
-
+  
   register: async (userData: RegistrationData): Promise<any> => {
   try {
     console.log("Sending registration data:", userData)
@@ -243,22 +225,7 @@ const authService = {
     }
   },
 
-  // setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
-  //   try {
-  //     console.log("Setting new password with token")
-  //     const response = await authAxios.patch("/set-new-password/", {
-  //       uidb64,
-  //       token,
-  //       new_password: newPassword,
-  //     })
-  //     console.log("Password reset successful")
-  //     return response.data
-  //   } catch (error: any) {
-  //     console.error("Password reset error:", error.response?.data || error.message)
-  //     throw error
-  //   }
-  // },
-
+  
   setNewPassword: async (uidb64: string, token: string, newPassword: string): Promise<any> => {
   try {
     console.log("Setting new password with token")

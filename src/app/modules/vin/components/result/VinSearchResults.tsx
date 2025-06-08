@@ -163,44 +163,26 @@ const VinSearchResults: React.FC<VinSearchResultsProps> = ({ searchResults, onNe
         </span>
       </div>
 
-      {/* <div className="space-y-3 md:space-y-4">
-        {searchResults.map((vehicle) => (
-          <div key={vehicle.vin} className="border rounded-lg p-3 md:p-4 hover:bg-gray-50 transition">
-            <div className="flex justify-between items-center">
-              <p className="text-md lg:text-base font-bold text-[#000] break-words">VIN: {vehicle.vin}</p>
-              
-              {searchResults.length > 1 && (
-                <button
-                  onClick={() => handleAddSingleToCart(vehicle)}
-                  disabled={!isLoggedIn || cartLoading}
-                  className="text-sm px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div> */}
+      
 
       <div className="space-y-3 md:space-y-4">
-  {searchResults.map((vehicle) => (
-    <div key={vehicle.vin} className="border rounded-lg p-3 md:p-4 hover:bg-gray-50 transition">
-      <div className={`flex items-center ${searchResults.length > 1 ? 'justify-between' : 'justify-center'}`}>
-        <p className="text-md lg:text-base font-bold text-[#000] break-words">VIN: {vehicle.vin}</p>
-        
-        {searchResults.length > 1 && (
-          <button
-            onClick={() => handleAddSingleToCart(vehicle)}
-            disabled={!isLoggedIn || cartLoading}
-            className="text-sm px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Add
-          </button>
-        )}
-      </div>
-    </div>
-  ))}
+      {searchResults.map((vehicle) => (
+        <div key={vehicle.vin} className="border rounded-lg p-3 md:p-4 hover:bg-gray-50 transition">
+          <div className={`flex items-center ${searchResults.length > 1 ? 'justify-between' : 'justify-center'}`}>
+            <p className="text-md lg:text-base font-bold text-[#000] break-words">VIN: {vehicle.vin}</p>
+            
+            {searchResults.length > 1 && (
+              <button
+                onClick={() => handleAddSingleToCart(vehicle)}
+                disabled={!isLoggedIn || cartLoading}
+                className="text-sm px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
 </div>
 
       {/* Action buttons - responsive layout */}

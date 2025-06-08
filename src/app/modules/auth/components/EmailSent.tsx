@@ -131,9 +131,9 @@ const EmailSent: React.FC = () => {
         <div className="space-y-4">
           <button
             onClick={handleSimulateResetLink}
-            className="w-full py-2 px-4 bg-green-500 text-black rounded-md hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            // className="w-full py-2 px-4 bg-green-500 text-black rounded-md hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
-            Continue
+            {/* Continue */}
           </button>
 
           <p className="text-sm text-gray-500">
