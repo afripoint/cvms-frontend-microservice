@@ -169,7 +169,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item }) => {
           </span>
         ) : (
           <span className="bg-red-100 text-red-600 text-xs px-2 sm:px-3 py-1 rounded-full">
-            • Failed
+            • Not found
           </span>
         )}
       </div>
