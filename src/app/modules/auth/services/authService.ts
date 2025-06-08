@@ -143,24 +143,53 @@ authAxios.interceptors.response.use(
 )
 
 const authService = {
+  // register: async (userData: RegistrationData): Promise<any> => {
+  //   try {
+  //     console.log("Sending registration data:", userData)
+  //     const response = await authAxios.post("/register/", userData)
+  //     console.log("Registration successful:", response.data)
+
+  //     // Store user data for later use
+  //     if (response.data.user) {
+  //       appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
+  //     }
+
+  //     return response.data
+  //   } catch (error: any) {
+  //     console.error("Registration error:", error)
+  //     throw error
+  //   }
+  // },
+
+
   register: async (userData: RegistrationData): Promise<any> => {
-    try {
-      console.log("Sending registration data:", userData)
-      const response = await authAxios.post("/register/", userData)
-      console.log("Registration successful:", response.data)
-
-      // Store user data for later use
-      if (response.data.user) {
-        appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
-      }
-
-      return response.data
-    } catch (error: any) {
-      console.error("Registration error:", error)
-      throw error
+  try {
+    console.log("Sending registration data:", userData)
+    const response = await authAxios.post("/register/", userData)
+    console.log("Registration successful:", response.data)
+    
+    if (response.data.user) {
+      appSaveToLocalStorage(StorageKeys.USER_DATA, response.data.user)
     }
-  },
-
+    
+    return response.data
+  } catch (error: any) {
+    console.error("Registration error:", error)
+    
+    // Ensure the error has a consistent structure
+    if (error.response) {
+      throw {
+        response: {
+          data: error.response.data,
+          status: error.response.status,
+          statusText: error.response.statusText
+        }
+      }
+    }
+    
+    throw error
+  }
+},
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
       const response = await authAxios.post<LoginResponse>("/login/", { email, password })

@@ -14,8 +14,55 @@ const initialState: AuthState = {
   successMessage: null,
 }
 
+// export const extractErrorMessage = (error: any): string => {
+//   console.log("Extracting error message from:", error)
+
+//   // Handle non_field_errors array from API (most common format for auth errors)
+//   if (error?.data?.non_field_errors && Array.isArray(error.data.non_field_errors)) {
+//     return error.data.non_field_errors[0]
+//   }
+
+//   // Handle array of error messages from API
+//   if (error?.data?.error && Array.isArray(error.data.error)) {
+//     return error.data.error[0]
+//   }
+
+//   // Handle single error message
+//   if (error?.data?.error) {
+//     return error.data.error
+//   }
+
+//   // Handle detail error format
+//   if (error?.data?.detail) {
+//     return error.data.detail
+//   }
+
+//   // Handle message format
+//   if (error?.data?.message) {
+//     return error.data.message
+//   }
+
+//   // Check if error itself is a string
+//   if (typeof error === "string") {
+//     return error
+//   }
+
+//   // Check if error has a message property
+//   if (error?.message) {
+//     return error.message
+//   }
+
+//   // Default error message
+//   return "An unexpected error occurred"
+// }
+
 export const extractErrorMessage = (error: any): string => {
   console.log("Extracting error message from:", error)
+
+  // Handle email field errors (like {"email": ["message"]})
+  if (error?.data?.email && Array.isArray(error.data.email)) {
+    return error.data.email[0]
+  }
 
   // Handle non_field_errors array from API (most common format for auth errors)
   if (error?.data?.non_field_errors && Array.isArray(error.data.non_field_errors)) {

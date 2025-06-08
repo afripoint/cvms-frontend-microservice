@@ -281,6 +281,58 @@ const getAuthToken = (): string | null => {
   return null
 }
 
+// export const fetchHistory = (): AppThunk => async (dispatch) => {
+//   dispatch({ type: FETCH_HISTORY_START });
+  
+//   try {
+//     // Use the local getAuthToken helper function
+//     const token = getAuthToken();
+    
+//     if (!token) {
+//       throw new Error('No authentication token available');
+//     }
+
+//     const response = await axios.get('https://cvms-microservice.afripointdev.com/vin/vin-search-history/', {
+//       headers: {
+//         'Authorization': `Bearer ${token}`
+//       }
+//     });
+    
+//     const formattedData = response.data.vin_searches_history.map((item: any) => ({
+//       vin: item.vin,
+//       make: item.make || 'Unknown',
+//       date: new Date(item.created_at).toLocaleDateString(),
+//       status: item.status,
+//       created_at: item.created_at
+//     }));
+    
+//     dispatch({
+//       type: FETCH_HISTORY_SUCCESS,
+//       payload: formattedData
+//     });
+    
+//     return formattedData;
+//   } catch (error: any) {
+//     let errorMessage = 'Failed to fetch history data';
+    
+//     if (error?.response?.status === 401) {
+//       errorMessage = 'Authentication failed. Please log in again.';
+//     } else if (error?.response?.data?.message) {
+//       errorMessage = error.response.data.message;
+//     } else if (error?.message) {
+//       errorMessage = error.message;
+//     }
+    
+//     dispatch({
+//       type: FETCH_HISTORY_ERROR,
+//       payload: errorMessage
+//     });
+    
+//     throw new Error(errorMessage);
+//   }
+// };
+
+
 export const fetchHistory = (): AppThunk => async (dispatch) => {
   dispatch({ type: FETCH_HISTORY_START });
   
@@ -303,7 +355,17 @@ export const fetchHistory = (): AppThunk => async (dispatch) => {
       make: item.make || 'Unknown',
       date: new Date(item.created_at).toLocaleDateString(),
       status: item.status,
-      created_at: item.created_at
+      created_at: item.created_at,
+      // Include all certificate data
+      model: item.model,
+      vehicle_year: item.vehicle_year,
+      engine_type: item.engine_type,
+      vreg: item.vreg,
+      vehicle_type: item.vehicle_type,
+      origin_country: item.origin_country,
+      payment_status: item.payment_status,
+      qr_code_base64: item.qr_code_base64,
+      ref_number: item.ref_number
     }));
     
     dispatch({
