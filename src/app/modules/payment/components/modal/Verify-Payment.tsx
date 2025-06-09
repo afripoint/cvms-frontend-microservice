@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import SuccessPaymentModal from './SuccessPaymentModal';
 import { addReport } from '../../../report/redux/slices/certificateSlice';
+import { clearCart } from '../../../cart';
 
 interface VerifyPaymentProps {
   onVerify?: () => void;
@@ -96,8 +97,24 @@ const reference = urlParams.get('reference');
     // console.log(gateway)
     try {
       const api = getApiInstance();
+     if(gateway === "paystack"){
+        
       const response = await api.get(`/verify-one-time-payment/${reference}?payment_gateway=${gateway}`);
+       if(response.status === 200){
+      dispatch(clearCart())
+     }
       return response.data;
+     }else{
+      const response = await api.get(`/verify-one-time-payment/${paymentData?.transactionId}?payment_gateway=${gateway}`);
+      console.log(response);
+      if(response.status === 200){
+      dispatch(clearCart())
+     }
+      return response.data;
+
+     }
+     
+      
     } catch (error) {
       console.error('Payment verification error:', error);
       throw new Error('Failed to verify payment');
