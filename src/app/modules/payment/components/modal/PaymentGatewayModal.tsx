@@ -5,9 +5,9 @@ import { useState, useEffect} from "react"
 import { toast, ToastContainer } from "react-toastify"
 // import "react-toastify/dist/ReactToastify.css"
 import SuccessPaymentModal from "./SuccessPaymentModal"
-import { useSelector, useDispatch } from "react-redux"
+import { useSelector } from "react-redux"
 import type { RootState } from "../../../../core/store"
-import { clearCart } from "../../../cart/redux/slices/cartSlice"
+// import { clearCart } from "../../../cart/redux/slices/cartSlice"
 import axios from "axios"
 // import { useNavigate } from "react-router-dom"
 
@@ -65,7 +65,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
-  const dispatch = useDispatch()
+  // const dispatch = useDispatch()
   // const navigate = useNavigate()
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
@@ -273,7 +273,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     setShowSuccessModal(true)
     onPay(method, txnId, state)
 
-    dispatch(clearCart())
+    // dispatch(clearCart())
 
     // Backend verification for Remita
     try {
@@ -333,7 +333,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       // Redirect to Paystack authorization URL
       window.location.href = checkoutResponse.authorization_url
       
-      dispatch(clearCart())
+      // dispatch(clearCart())
     } catch (error) {
       console.error("Paystack payment error:", error)
       toast.error(`Failed to initiate Paystack payment: ${error instanceof Error ? error.message : 'Unknown error'}`)
