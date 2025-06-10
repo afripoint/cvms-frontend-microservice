@@ -297,34 +297,38 @@ const PaymentMethodPage: React.FC = () => {
                   </div>
                 </div>
 
-              <div
-                className={`cursor-pointer rounded-lg flex items-center relative transition-all duration-200 ${
-                  selectedMethod === "purchase" ? "" : "border-gray-200"
-                }`}
-                onClick={() => handleMethodSelect("purchase")}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  checked={selectedMethod === "purchase"}
-                  onChange={() => handleMethodSelect("purchase")}
-                  className="mr-2 sm:mr-4 h-4 sm:h-5 w-4 sm:w-5 text-green-600"
-                  style={{ accentColor: "#10b981" }}
-                />
-                <div className="flex-grow flex items-center justify-between pr-16 sm:pr-20">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Purchase Payment Plan</h3>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {selectedPlan 
-                        ? `Selected: ${selectedPlan.name} (${selectedPlan.description})` 
-                        : "Subscribe to run multiple searches and save more cost"}
-                    </p>
+                {/* Commented out Purchase Payment Plan option */}
+                {/* <div
+                  className={`cursor-pointer rounded-lg p-4 border-2 relative transition-all duration-200 ${
+                    selectedMethod === "purchase" 
+                      ? "border-green-500 bg-green-50" 
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => handleMethodSelect("purchase")}
+                >
+                  <div className="flex items-start sm:items-center pr-16 sm:pr-20">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={selectedMethod === "purchase"}
+                      onChange={() => handleMethodSelect("purchase")}
+                      className="mt-1 sm:mt-0 mr-3 sm:mr-4 h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0"
+                      style={{ accentColor: "#10b981" }}
+                    />
+                    <div className="flex-grow">
+                      <h3 className="font-semibold text-gray-800 text-base sm:text-lg mb-1">Purchase Payment Plan</h3>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                        {selectedPlan 
+                          ? `Selected: ${selectedPlan.name} (${selectedPlan.description})` 
+                          : "Subscribe to run multiple searches and save more cost"
+                        }
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <span className="absolute right-0 mr-2 bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded">
-                  Recommended
-                </span>
-              </div>
+                  <span className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded">
+                    Recommended
+                  </span>
+                </div> */}
 
                 <button
                   className={`w-full py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors ${
@@ -389,7 +393,7 @@ const PaymentMethodPage: React.FC = () => {
                 <span className="text-gray-500">
                   {isItemsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </span>
-              </div> 
+              </div>
 
               {isItemsExpanded && (
                 <div className="border-t bg-white">

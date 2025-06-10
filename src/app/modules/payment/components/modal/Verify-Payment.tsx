@@ -63,7 +63,7 @@ const reference = urlParams.get('reference');
   const getApiInstance = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     return axios.create({
-      baseURL: 'https://cvms-microservice.afripointdev.com/vin',
+      baseURL: 'https://cvms-staging.afripointdev.com/vin',
       headers: {
         'Authorization': token ? `Bearer ${token}` : undefined
       }

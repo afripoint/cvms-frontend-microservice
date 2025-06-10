@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
 import { VehicleDetails } from "../../../vin"
 import { cartService } from "../../service/cartService"
-<<<<<<< HEAD
-=======
 import { loadCartFromLocalStorage, saveCartToLocalStorage } from "../../storage/cartStorage"
->>>>>>> newbuild
 
 // Cart Item Interface
 export interface CartItem {
@@ -28,9 +25,6 @@ interface CartState {
 }
 
 // Initial State
-<<<<<<< HEAD
-const initialState: CartState = {
-=======
 // const initialState: CartState = {
 //   items: [],
 //   totalPrice: 0,
@@ -210,7 +204,6 @@ export const removeVinFromCartAsync = createAsyncThunk(
 
 const persistedState = loadCartFromLocalStorage();
 const initialState: CartState = persistedState || {
->>>>>>> newbuild
   items: [],
   totalPrice: 0,
   promoCode: null,
