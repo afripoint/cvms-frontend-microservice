@@ -749,8 +749,8 @@ const OTPVerificationPage: React.FC = () => {
               ? `We've sent a 6-digit code to your email ${email.replace(
                   /(.{2})(.*)@(.*)/,
                   "$1***@$3"
-                )}`
-              : `We've sent a 6-digit code to your phone number`}
+                )} and phone — check both to be continue`
+              : `We've sent a 6-digit code to your phone number`} 
           </p>
 
           <div className="mb-6 mr-2">
