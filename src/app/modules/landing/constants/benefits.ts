@@ -22,21 +22,21 @@ export const workflowSteps: WorkflowStep[] = [
     id: 2,
     title: "Search for VINs, Report & more",
     description:
-      "Start using the CVMS app to look up VINs, vehicle history reports, status tracking, and records for any of your vehicles.",
+      "Start using the CVMS app to look up VINs, Accredify, status tracking, and records for any of your vehicles.",
     icon: "magnifying-glass",
   },
   {
     id: 3,
     title: "Make Payment",
     description:
-      "After looking up your VIN and getting your report preview, you then proceed to making payment to download your report.",
+      "After looking up your VIN, you then proceed to making payment to download your report.",
     icon: "credit-card",
   },
   {
     id: 4,
     title: "Download Report",
     description:
-      "Get your vehicle report and access your vehicle's information and also check your Customs duty payment status.",
+      "Access your vehicle's information, check your Customs duty payment status and save to device!",
     icon: "file-arrow-down",
   },
 ]
