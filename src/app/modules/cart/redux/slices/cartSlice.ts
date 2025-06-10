@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
 import { VehicleDetails } from "../../../vin"
 import { cartService } from "../../service/cartService"
+<<<<<<< HEAD
+=======
+import { loadCartFromLocalStorage, saveCartToLocalStorage } from "../../storage/cartStorage"
+>>>>>>> newbuild
 
 // Cart Item Interface
 export interface CartItem {
@@ -24,15 +28,23 @@ interface CartState {
 }
 
 // Initial State
+<<<<<<< HEAD
 const initialState: CartState = {
-  items: [],
-  totalPrice: 0,
-  promoCode: null,
-  discount: 0,
-  isLoading: false,
-  error: null,
-  removingVin: null,
-}
+=======
+// const initialState: CartState = {
+//   items: [],
+//   totalPrice: 0,
+//   promoCode: null,
+//   discount: 0,
+//   isLoading: false,
+//   error: null,
+//   removingVin: null,
+
+
+// }
+
+
+
 
 // Async thunk for adding VINs to cart via API
 export const addVinsToCartAsync = createAsyncThunk(
@@ -62,7 +74,7 @@ export const addVinsToCartAsync = createAsyncThunk(
   }
 )
 
-// Async thunk for removing VIN from cart via API
+// // Async thunk for removing VIN from cart via API
 export const removeVinFromCartAsync = createAsyncThunk(
   'cart/removeVinFromCart',
   async (vin: string, { rejectWithValue }) => {
@@ -80,6 +92,134 @@ export const removeVinFromCartAsync = createAsyncThunk(
   }
 )
 
+// const cartSlice = createSlice({
+//   name: "cart",
+//   initialState,
+//   reducers: {
+//     addToCart: (state, action: PayloadAction<CartItem>) => {
+//       const existingItem = state.items.find((item) => item.id === action.payload.id)
+
+//       if (existingItem) {
+//         existingItem.quantity += action.payload.quantity
+//       } else {
+//         state.items.push(action.payload)
+//       }
+
+//       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       state.error = null // Clear any previous errors
+//     },
+//     removeFromCart: (state, action: PayloadAction<string>) => {
+//       state.items = state.items.filter((item) => item.id !== action.payload)
+//       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//     },
+//     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
+//       const item = state.items.find((item) => item.id === action.payload.id)
+
+//       if (item) {
+//         item.quantity = action.payload.quantity
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       }
+//     },
+//     clearCart: (state) => {
+//       state.items = []
+//       state.totalPrice = 0
+//       state.promoCode = null
+//       state.discount = 0
+//       state.error = null
+//       state.removingVin = null
+//     },
+//     clearError: (state) => {
+//       state.error = null
+//     },
+//     applyPromoCode: (state, action: PayloadAction<string>) => {
+//       // This is a simplified promo code handler
+//       // In a real app, you'd validate the promo code against a backend
+//       const validPromoCodes: { [key: string]: number } = {
+//         SAVE10: 500,
+//         FIRST50: 1000,
+//         WELCOME: 1500,
+//       }
+
+//       const promoCode = action.payload.toUpperCase()
+
+//       if (validPromoCodes[promoCode]) {
+//         state.promoCode = promoCode
+//         state.discount = validPromoCodes[promoCode]
+//       } else {
+//         state.promoCode = null
+//         state.discount = 0
+//       }
+//     },
+//     clearPromoCode: (state) => {
+//       state.promoCode = null
+//       state.discount = 0
+//     },
+//   },
+//   extraReducers: (builder) => {
+//     builder
+//       // Handle addVinsToCartAsync
+//       .addCase(addVinsToCartAsync.pending, (state) => {
+//         state.isLoading = true
+//         state.error = null
+//       })
+//       .addCase(addVinsToCartAsync.fulfilled, (state, action) => {
+//         state.isLoading = false
+//         state.error = null
+        
+//         // Add the cart items to the state
+//         action.payload.cartItems.forEach(cartItem => {
+//           const existingItem = state.items.find((item) => item.id === cartItem.id)
+          
+//           if (existingItem) {
+//             existingItem.quantity += cartItem.quantity
+//           } else {
+//             state.items.push(cartItem)
+//           }
+//         })
+        
+//         // Recalculate total price
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       })
+//       .addCase(addVinsToCartAsync.rejected, (state, action) => {
+//         state.isLoading = false
+//         state.error = action.payload as string
+//       })
+//       // Handle removeVinFromCartAsync
+//       .addCase(removeVinFromCartAsync.pending, (state, action) => {
+//         state.removingVin = action.meta.arg
+//         state.error = null
+//       })
+//       .addCase(removeVinFromCartAsync.fulfilled, (state, action) => {
+//         state.removingVin = null
+//         state.error = null
+        
+//         // Remove the VIN from local state
+//         state.items = state.items.filter((item) => item.id !== action.payload.vin)
+        
+//         // Recalculate total price
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       })
+//       .addCase(removeVinFromCartAsync.rejected, (state, action) => {
+//         state.removingVin = null
+//         state.error = action.payload as string
+//       })
+
+      
+//   },
+// })
+
+const persistedState = loadCartFromLocalStorage();
+const initialState: CartState = persistedState || {
+>>>>>>> newbuild
+  items: [],
+  totalPrice: 0,
+  promoCode: null,
+  discount: 0,
+  isLoading: false,
+  error: null,
+  removingVin: null,
+};
+
 const cartSlice = createSlice({
   name: "cart",
   initialState,
@@ -94,11 +234,13 @@ const cartSlice = createSlice({
       }
 
       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
-      state.error = null // Clear any previous errors
+      state.error = null
+      saveCartToLocalStorage(state); // Save to localStorage
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload)
       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+      saveCartToLocalStorage(state); // Save to localStorage
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
       const item = state.items.find((item) => item.id === action.payload.id)
@@ -106,6 +248,7 @@ const cartSlice = createSlice({
       if (item) {
         item.quantity = action.payload.quantity
         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+        saveCartToLocalStorage(state); // Save to localStorage
       }
     },
     clearCart: (state) => {
@@ -115,13 +258,13 @@ const cartSlice = createSlice({
       state.discount = 0
       state.error = null
       state.removingVin = null
+      // saveCartToLocalStorage(state); // Save to localStorage
+      localStorage.removeItem('cartState');
     },
     clearError: (state) => {
       state.error = null
     },
     applyPromoCode: (state, action: PayloadAction<string>) => {
-      // This is a simplified promo code handler
-      // In a real app, you'd validate the promo code against a backend
       const validPromoCodes: { [key: string]: number } = {
         SAVE10: 500,
         FIRST50: 1000,
@@ -137,15 +280,16 @@ const cartSlice = createSlice({
         state.promoCode = null
         state.discount = 0
       }
+      saveCartToLocalStorage(state); // Save to localStorage
     },
     clearPromoCode: (state) => {
       state.promoCode = null
       state.discount = 0
+      saveCartToLocalStorage(state); // Save to localStorage
     },
   },
   extraReducers: (builder) => {
     builder
-      // Handle addVinsToCartAsync
       .addCase(addVinsToCartAsync.pending, (state) => {
         state.isLoading = true
         state.error = null
@@ -154,7 +298,6 @@ const cartSlice = createSlice({
         state.isLoading = false
         state.error = null
         
-        // Add the cart items to the state
         action.payload.cartItems.forEach(cartItem => {
           const existingItem = state.items.find((item) => item.id === cartItem.id)
           
@@ -165,14 +308,13 @@ const cartSlice = createSlice({
           }
         })
         
-        // Recalculate total price
         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+        saveCartToLocalStorage(state); // Save to localStorage
       })
       .addCase(addVinsToCartAsync.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
       })
-      // Handle removeVinFromCartAsync
       .addCase(removeVinFromCartAsync.pending, (state, action) => {
         state.removingVin = action.meta.arg
         state.error = null
@@ -181,11 +323,9 @@ const cartSlice = createSlice({
         state.removingVin = null
         state.error = null
         
-        // Remove the VIN from local state
         state.items = state.items.filter((item) => item.id !== action.payload.vin)
-        
-        // Recalculate total price
         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+        saveCartToLocalStorage(state); // Save to localStorage
       })
       .addCase(removeVinFromCartAsync.rejected, (state, action) => {
         state.removingVin = null
@@ -193,6 +333,8 @@ const cartSlice = createSlice({
       })
   },
 })
+
+
 
 export const { 
   addToCart, 
@@ -205,3 +347,129 @@ export const {
 } = cartSlice.actions
 
 export default cartSlice.reducer
+
+
+
+// const persistedState = loadCartFromLocalStorage();
+// const initialState: CartState = persistedState || {
+//   items: [],
+//   totalPrice: 0,
+//   promoCode: null,
+//   discount: 0,
+//   isLoading: false,
+//   error: null,
+//   removingVin: null,
+// };
+
+// const cartSlice = createSlice({
+//   name: "cart",
+//   initialState,
+//   reducers: {
+//     addToCart: (state, action: PayloadAction<CartItem>) => {
+//       const existingItem = state.items.find((item) => item.id === action.payload.id)
+
+//       if (existingItem) {
+//         existingItem.quantity += action.payload.quantity
+//       } else {
+//         state.items.push(action.payload)
+//       }
+
+//       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       state.error = null
+//       saveCartToLocalStorage(state); // Save to localStorage
+//     },
+//     removeFromCart: (state, action: PayloadAction<string>) => {
+//       state.items = state.items.filter((item) => item.id !== action.payload)
+//       state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//       saveCartToLocalStorage(state); // Save to localStorage
+//     },
+//     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
+//       const item = state.items.find((item) => item.id === action.payload.id)
+
+//       if (item) {
+//         item.quantity = action.payload.quantity
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//         saveCartToLocalStorage(state); // Save to localStorage
+//       }
+//     },
+//     clearCart: (state) => {
+//       state.items = []
+//       state.totalPrice = 0
+//       state.promoCode = null
+//       state.discount = 0
+//       state.error = null
+//       state.removingVin = null
+//       saveCartToLocalStorage(state); // Save to localStorage
+//     },
+//     clearError: (state) => {
+//       state.error = null
+//     },
+//     applyPromoCode: (state, action: PayloadAction<string>) => {
+//       const validPromoCodes: { [key: string]: number } = {
+//         SAVE10: 500,
+//         FIRST50: 1000,
+//         WELCOME: 1500,
+//       }
+
+//       const promoCode = action.payload.toUpperCase()
+
+//       if (validPromoCodes[promoCode]) {
+//         state.promoCode = promoCode
+//         state.discount = validPromoCodes[promoCode]
+//       } else {
+//         state.promoCode = null
+//         state.discount = 0
+//       }
+//       saveCartToLocalStorage(state); // Save to localStorage
+//     },
+//     clearPromoCode: (state) => {
+//       state.promoCode = null
+//       state.discount = 0
+//       saveCartToLocalStorage(state); // Save to localStorage
+//     },
+//   },
+//   extraReducers: (builder) => {
+//     builder
+//       .addCase(addVinsToCartAsync.pending, (state) => {
+//         state.isLoading = true
+//         state.error = null
+//       })
+//       .addCase(addVinsToCartAsync.fulfilled, (state, action) => {
+//         state.isLoading = false
+//         state.error = null
+        
+//         action.payload.cartItems.forEach(cartItem => {
+//           const existingItem = state.items.find((item) => item.id === cartItem.id)
+          
+//           if (existingItem) {
+//             existingItem.quantity += cartItem.quantity
+//           } else {
+//             state.items.push(cartItem)
+//           }
+//         })
+        
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//         saveCartToLocalStorage(state); // Save to localStorage
+//       })
+//       .addCase(addVinsToCartAsync.rejected, (state, action) => {
+//         state.isLoading = false
+//         state.error = action.payload as string
+//       })
+//       .addCase(removeVinFromCartAsync.pending, (state, action) => {
+//         state.removingVin = action.meta.arg
+//         state.error = null
+//       })
+//       .addCase(removeVinFromCartAsync.fulfilled, (state, action) => {
+//         state.removingVin = null
+//         state.error = null
+        
+//         state.items = state.items.filter((item) => item.id !== action.payload.vin)
+//         state.totalPrice = state.items.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
+//         saveCartToLocalStorage(state); // Save to localStorage
+//       })
+//       .addCase(removeVinFromCartAsync.rejected, (state, action) => {
+//         state.removingVin = null
+//         state.error = action.payload as string
+//       })
+//   },
+// })

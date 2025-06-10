@@ -86,7 +86,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({ item }) => {
       }
 
       // Fetch detailed certificate data for this VIN
-      const response = await fetch('https://cvms-staging.afripointdev.com/vin/vin-search-history/', {
+      const response = await fetch('https://cvms-microservice.afripointdev.com/vin/vin-search-history/', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

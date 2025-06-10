@@ -719,14 +719,25 @@ createSubAccount: async (subAccountData: {
       email: subAccountData.email,
       phone_number: subAccountData.phone_number,
     });
-
+    
+    console.error(response.data)
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      // Re-throw the full axios error so the action creator can handle detailed error parsing
-      throw error;
+      // Check if there's a response with error data
+      if (error.response) {
+        // You can customize this based on your API's error response structure
+        const errorMessage = error.response.data.phone_number[0] || 
+                            error.response.data.error || 
+                            error.response.data.detail || 
+                            'An unknown error occurred';
+        throw new Error(errorMessage);
+      }
+      // If no response but it's an axios error (e.g., network error)
+      throw new Error(error.message || 'Network error occurred');
     }
-    throw new Error("Failed to create sub-account");
+    // For non-axios errors
+    throw error instanceof Error ? error : new Error('An unknown error occurred');
   }
 },
 

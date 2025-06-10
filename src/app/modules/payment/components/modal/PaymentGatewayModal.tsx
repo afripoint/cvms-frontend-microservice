@@ -5,11 +5,11 @@ import { useState, useEffect} from "react"
 import { toast, ToastContainer } from "react-toastify"
 // import "react-toastify/dist/ReactToastify.css"
 import SuccessPaymentModal from "./SuccessPaymentModal"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../../../core/store"
-// import { clearCart } from "../../../cart/redux/slices/cartSlice"
+import { clearCart } from "../../../cart/redux/slices/cartSlice"
 import axios from "axios"
-// import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 // Types
 type PaymentMethod = "remita" | "paystack"
@@ -65,8 +65,8 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 }) => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items)
-  // const dispatch = useDispatch()
-  // const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle")
@@ -86,7 +86,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const getApiInstance = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
     return axios.create({
-      baseURL: 'https://cvms-staging.afripointdev.com/vin',
+      baseURL: 'https://cvms-microservice.afripointdev.com/vin',
       headers: {
         'Authorization': token ? `Bearer ${token}` : undefined
       }
@@ -273,7 +273,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     setShowSuccessModal(true)
     onPay(method, txnId, state)
 
-    // dispatch(clearCart())
+    dispatch(clearCart())
 
     // Backend verification for Remita
     try {
@@ -333,7 +333,7 @@ const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       // Redirect to Paystack authorization URL
       window.location.href = checkoutResponse.authorization_url
       
-      // dispatch(clearCart())
+      dispatch(clearCart())
     } catch (error) {
       console.error("Paystack payment error:", error)
       toast.error(`Failed to initiate Paystack payment: ${error instanceof Error ? error.message : 'Unknown error'}`)

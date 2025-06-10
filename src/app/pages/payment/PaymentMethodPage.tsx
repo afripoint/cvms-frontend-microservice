@@ -85,26 +85,26 @@ const PurchasePlanModal: React.FC<{
   }
 
   return (
-    <div className="fixed inset-0 z-50 mt-12 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-md sm:max-w-lg shadow-lg my-8">
-        <div className="p-4 relative max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-md font-medium">All available plans</h2>
-            <button onClick={onClose} className="text-gray-500 text-xl hover:text-gray-700">
+        <div className="p-4 sm:p-6 relative max-h-[85vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold">All available plans</h2>
+            <button onClick={onClose} className="text-gray-500 text-xl hover:text-gray-700 p-1">
               ×
             </button>
           </div>
 
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-6">
             {plans.map((plan) => (
               <div
                 key={plan.name}
                 onClick={() => setSelectedPlan(plan.name)}
-                className={`border rounded-lg p-3 cursor-pointer ${
-                  selectedPlan === plan.name ? "border-2 border-[#00A229] " : "border border-[#D1D1D1] hover:border-gray-300"
+                className={`border rounded-lg p-3 sm:p-4 cursor-pointer transition-all ${
+                  selectedPlan === plan.name ? "border-2 border-[#00A229] bg-green-50" : "border border-[#D1D1D1] hover:border-gray-300"
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
                     <input
                       type="radio"
@@ -114,12 +114,12 @@ const PurchasePlanModal: React.FC<{
                       className="h-4 w-4 border-gray-300 focus:ring-[#00A229] accent-[#00A229]"
                       style={{ accentColor: "#10b981" }}
                     />
-                    <span className="ml-2 font-bold text-sm">{plan.name}</span>
+                    <span className="ml-3 font-semibold text-sm sm:text-base">{plan.name}</span>
                   </div>
-                  <span className="font-bold text-sm">{plan.price}</span>
+                  <span className="font-bold text-sm sm:text-base">{plan.price}</span>
                 </div>
-                <div className="ml-6 text-xs text-[#000000]">
-                  <div>{plan.description}</div>
+                <div className="ml-7 text-xs sm:text-sm text-[#000000]">
+                  <div className="font-medium">{plan.description}</div>
                   <div className="text-xs text-[#8E8E93] mt-1">{plan.subText}</div>
                 </div>
               </div>
@@ -129,7 +129,7 @@ const PurchasePlanModal: React.FC<{
           <button
             onClick={handleContinue}
             disabled={!selectedPlan}
-            className={`w-full py-2 text-center rounded-lg font-medium ${
+            className={`w-full py-3 text-center rounded-lg font-semibold transition-colors ${
               selectedPlan
                 ? "bg-[#00A229] text-white hover:bg-green-600"
                 : "bg-gray-200 text-gray-500 cursor-not-allowed"
@@ -248,50 +248,56 @@ const PaymentMethodPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl">
         {/* Back Link */}
-        <div className="ml-4 sm:ml-8 md:ml-16 lg:ml-24">
+        <div className="mb-4 sm:mb-6">
           <button
             onClick={handleGoBack}
             className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
-            <ChevronLeft size={20} className="" />
-            <span className="text-sm text-green-600 font-medium">Back</span>
+            <ChevronLeft size={20} />
+            <span className="text-sm text-green-600 font-medium ml-1">Back</span>
           </button>
         </div>
 
         {/* Payment Method Title */}
-        <h1 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 ml-4 sm:ml-8 md:ml-16 lg:ml-24">Payment Method</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-start">Payment Method</h1>
 
-        <div className="flex flex-col lg:flex-row justify-center items-start gap-56 lg:gap-40 px-4">
+        <div className="flex flex-col xl:flex-row gap-8 xl:gap-32 justify-center xl:justify-start">
           {/* Payment Method Column */}
-          <Card className="w-full lg:max-w-lg">
-            <CardContent className="space-y-3 sm:space-y-4 p-4 border-2">
-              <div
-                className={`cursor-pointer rounded-lg flex items-center transition-all duration-200 ${
-                  selectedMethod === "oneTime" ? "" : "border-gray-200"
-                }`}
-                onClick={() => handleMethodSelect("oneTime")}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  checked={selectedMethod === "oneTime"}
-                  onChange={() => handleMethodSelect("oneTime")}
-                  className="mr-2 sm:mr-4 h-4 sm:h-5 w-4 sm:w-5 text-green-600"
-                  style={{ accentColor: "#10b981" }}
-                />
-                <div className="flex-grow flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">One-Time Payment</h3>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {selectedPlan ? `Pay ${selectedPlan.price} for ${selectedPlan.name}` : "You pay using either Remita/Paystack once"}
-                    </p>
+          <div className="w-full xl:w-auto xl:flex-1 max-w-xl mx-auto xl:mx-0">
+            <Card className="w-full">
+              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+                <div
+                  className={`cursor-pointer rounded-lg p-4 border-2 transition-all duration-200 ${
+                    selectedMethod === "oneTime" 
+                      ? "border-green-500 bg-green-50" 
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => handleMethodSelect("oneTime")}
+                >
+                  <div className="flex items-start sm:items-center">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={selectedMethod === "oneTime"}
+                      onChange={() => handleMethodSelect("oneTime")}
+                      className="mt-1 sm:mt-0 mr-3 sm:mr-4 h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0"
+                      style={{ accentColor: "#10b981" }}
+                    />
+                    <div className="flex-grow">
+                      <h3 className="font-semibold text-gray-800 text-base sm:text-lg mb-1">One-Time Payment</h3>
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                        {selectedPlan 
+                          ? `Pay ${selectedPlan.price} for ${selectedPlan.name}` 
+                          : "You pay using either Remita/Paystack once"
+                        }
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* <div
+              <div
                 className={`cursor-pointer rounded-lg flex items-center relative transition-all duration-200 ${
                   selectedMethod === "purchase" ? "" : "border-gray-200"
                 }`}
@@ -318,96 +324,98 @@ const PaymentMethodPage: React.FC = () => {
                 <span className="absolute right-0 mr-2 bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded">
                   Recommended
                 </span>
-              </div> */}
-
-              <button
-                className={`w-full py-2 rounded-lg font-semibold transition ${
-                  selectedMethod
-                    ? "bg-green-500 text-black hover:bg-green-600"
-                    : "bg-[#C0EECC] text-gray-500 cursor-not-allowed"
-                }`}
-                onClick={handleContinue}
-                disabled={!selectedMethod}
-              >
-                Continue
-              </button>
-            </CardContent>
-          </Card>
-
-          {/* Order Summary Column */}
-          <Card className="w-full lg:w-[400px] shadow-md p-4 bg-[#F2F2F7]">
-            <CardHeader className="px-0 py-2">
-              <CardTitle className="text-md font-bold">Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0 py-2">
-              <div className="space-y-2">
-                {selectedPlan ? (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{selectedPlan.name}</span>
-                    <span className="font-bold">₦{selectedPlan.numericPrice.toLocaleString()}</span>
-                  </div>
-                ) : (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-bold">₦{totalPrice.toLocaleString()}</span>
-                  </div>
-                )}
-                
-                {!selectedPlan && discount > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Promo Discount</span>
-                    <span className="text-black">-₦{discount.toLocaleString()}</span>
-                  </div>
-                )}
-                
-                <div className="border-t-2 pt-3 flex justify-between font-bold text-base sm:text-lg">
-                  <span>Est. Total</span>
-                  <span>₦{orderTotal.toLocaleString()}</span>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Your Items Section with Dropdown */}
-        <div className=" flex justify-center lg:justify-end px-4 lg:mr-14">
-          <div className="w-full lg:w-[400px] border rounded-lg bg-gray-50">
-            <div
-              className="p-3 flex items-center justify-between cursor-pointer"
-              onClick={() => setIsItemsExpanded(!isItemsExpanded)}
-            >
-              <div className="flex items-center">
-                <h4 className="text-sm font-semibold mr-2">
+                <button
+                  className={`w-full py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors ${
+                    selectedMethod
+                      ? "bg-green-500 text-white hover:bg-green-600"
+                      : "bg-[#C0EECC] text-gray-500 cursor-not-allowed"
+                  }`}
+                  onClick={handleContinue}
+                  disabled={!selectedMethod}
+                >
+                  Continue
+                </button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Order Summary and Items Column */}
+          <div className="w-full xl:w-96 xl:flex-shrink-0 space-y-4">
+            {/* Order Summary */}
+            <Card className="shadow-md bg-[#F2F2F7] p-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl font-bold">Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {selectedPlan ? (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm sm:text-base">{selectedPlan.name}</span>
+                      <span className="font-bold text-sm sm:text-base">₦{selectedPlan.numericPrice.toLocaleString()}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm sm:text-base">Subtotal</span>
+                      <span className="font-bold text-sm sm:text-base">₦{totalPrice.toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  {!selectedPlan && discount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm sm:text-base">Promo Discount</span>
+                      <span className="text-green-600 text-sm sm:text-base">-₦{discount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t-2 pt-3 flex justify-between font-bold text-base sm:text-lg">
+                    <span>Est. Total</span>
+                    <span>₦{orderTotal.toLocaleString()}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Your Items Section */}
+            <Card className="bg-gray-50">
+              <div
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => setIsItemsExpanded(!isItemsExpanded)}
+              >
+                <h4 className="text-sm sm:text-base font-semibold">
                   {selectedPlan ? `Selected Plan: ${selectedPlan.name}` : `Your Items (${items.length})`}
                 </h4>
-              </div>
-              <span className="text-sm font-bold">
-                {isItemsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </span>
-            </div>
+                <span className="text-gray-500">
+                  {isItemsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </span>
+              </div> 
 
-            {isItemsExpanded && (
-              <div className="border-t p-3">
-                {selectedPlan ? (
-                  <div className="flex items-center mb-2 last:mb-0">
-                    <div className="flex-grow">
-                      <p className="text-sm font-semibold">{selectedPlan.name}</p>
-                      <p className="text-xs text-gray-500">{selectedPlan.description}</p>
-                      <p className="text-xs text-gray-500">{selectedPlan.subText}</p>
-                    </div>
-                  </div>
-                ) : (
-                  items.map((item, index) => (
-                    <div key={index} className="flex items-center mb-2 last:mb-0">
-                      <div className="flex-grow">
-                        <p className="text-sm font-semibold">{item.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{item.id}</p>
+              {isItemsExpanded && (
+                <div className="border-t bg-white">
+                  <div className="p-4 space-y-3">
+                    {selectedPlan ? (
+                      <div className="space-y-2">
+                        <p className="text-sm sm:text-base font-semibold">{selectedPlan.name}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">{selectedPlan.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">{selectedPlan.subText}</p>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+                    ) : (
+                      items.length > 0 ? (
+                        items.map((item, index) => (
+                          <div key={index} className="space-y-1">
+                            <p className="text-sm sm:text-base font-semibold">{item.name}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 break-all">{item.id}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-2">No items in cart</p>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
         </div>
       </div>
