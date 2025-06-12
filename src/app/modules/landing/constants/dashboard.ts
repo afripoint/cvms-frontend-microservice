@@ -8,7 +8,7 @@ export const features: Feature[] = [
   {
     title: "VIN Search",
     description:
-      "Decipher any vehicle's history in seconds using their vehicle identification numbers (VIN) and verify its payment duty.",
+      "Know your vehicle's history in seconds using their vehicle identification numbers (VIN) and verify its payment duty",
     icon: "/icons/search.svg",
   },
   {
@@ -20,7 +20,7 @@ export const features: Feature[] = [
   },
   {
     title: "Status Tracking",
-    description: "Stay updated in real-time status alert and track the progress of your goods verifications..",
+    description: "Know exactly where your goods are in the customs process. From port arrival to clearance, get real-time updates.",
     icon:"/icons/status.svg",
 
   },

@@ -63,7 +63,8 @@ const CvmsBenefits: React.FC = () => {
             </CardHeader>
             <CardContent className="bg-white text-black  p-6">
               <p className="text-sm">
-              To be the trusted digital infrastructure for customs and verification 
+              To be the trusted digital infrastructure for customs verification
+
                 <br />
                 services nationwide.
               </p>

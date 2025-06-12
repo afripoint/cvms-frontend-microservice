@@ -9,6 +9,19 @@ import { generateCertificate } from "../services/certificateService";
 import ContactSupportModal from "../components/ContactSupportModal";
 import { vinApiService } from "../services/vinVehicleService";
 
+// interface ApiVehicleResult {
+//   vin: string;
+//   make?: string;
+//   model?: string;
+//   vehicle_year?: string;
+//   engine_type?: string;
+//   vreg?: string;
+//   vehicle_type?: string;
+//   origin_country?: string;
+//   payment_status?: string;
+//   ref_number: string;
+//   status: string;
+// }
 interface ApiVehicleResult {
   vin: string;
   make?: string;
@@ -19,6 +32,7 @@ interface ApiVehicleResult {
   vehicle_type?: string;
   origin_country?: string;
   payment_status?: string;
+  qr_code_image?: string; // Add this field
   ref_number: string;
   status: string;
 }
@@ -64,66 +78,116 @@ const Certificate = () => {
     }
   }, [reports, location, certificateGenerated]);
 
+  // const handleDownloadAll = async () => {
+  //   try {
+  //     setIsLoading(true);
+      
+  //     // Filter only successful certificates
+  //     const successfulCerts = allCertData.filter(
+  //       (cert) => cert.status?.toLowerCase() === "successful"
+  //     );
+
+  //     if (successfulCerts.length === 0) {
+  //       setError("No successful certificates available for download.");
+  //       return;
+  //     }
+
+  //     // Get VIN list from successful certificates
+  //     // const vinList = successfulCerts.map(cert => cert.vin);
+      
+  //     // Get detailed information for certificate generation
+  //     // const detailedData = await vinApiService.getVinDetails(vinList);
+
+  //     // Generate certificate for each successful VIN
+  //     for (const cert of successfulCerts) {
+  //       const vehicleRecord = cert
+      
+
+  //       // if (!vehicleRecord) {
+  //       //   console.warn(`Vehicle record not found for VIN: ${cert.vin}`);
+  //       //   continue;
+  //       // }
+
+  //       const certificateData = {
+  //         vin: vehicleRecord.vin,
+  //         makeModel: vehicleRecord.make || "Not available",
+  //         model: vehicleRecord.model || "Not available",
+  //         year: vehicleRecord.vehicle_year || "Not available",
+  //         certificateNumber: vehicleRecord.ref_number,
+  //         ownerName: "Vehicle Owner", // Replace with actual user data if available
+  //         ownerAddress: "No 16B Alimini Street Ipaja",
+  //         date: new Date().toLocaleDateString("en-GB", {
+  //           day: "2-digit",
+  //           month: "short",
+  //           year: "numeric",
+  //         }),
+  //         qrCodeBase64: "", // Add QR code if available
+  //       };
+
+  //       // Add a small delay between downloads
+  //       await new Promise(resolve => setTimeout(resolve, 500));
+  //       generateCertificate(certificateData);
+  //     }
+
+  //     console.log(`Successfully initiated download for ${successfulCerts.length} certificates`);
+      
+  //   } catch (error) {
+  //     console.error("Error downloading all certificates:", error);
+  //     setError("Failed to download certificates. Please try again later.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleDownloadAll = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Filter only successful certificates
-      const successfulCerts = allCertData.filter(
-        (cert) => cert.status?.toLowerCase() === "successful"
-      );
+  try {
+    setIsLoading(true);
+    
+    // Filter only successful certificates
+    const successfulCerts = allCertData.filter(
+      (cert) => cert.status?.toLowerCase() === "successful"
+    );
 
-      if (successfulCerts.length === 0) {
-        setError("No successful certificates available for download.");
-        return;
-      }
-
-      // Get VIN list from successful certificates
-      // const vinList = successfulCerts.map(cert => cert.vin);
-      
-      // Get detailed information for certificate generation
-      // const detailedData = await vinApiService.getVinDetails(vinList);
-
-      // Generate certificate for each successful VIN
-      for (const cert of successfulCerts) {
-        const vehicleRecord = cert
-      
-
-        // if (!vehicleRecord) {
-        //   console.warn(`Vehicle record not found for VIN: ${cert.vin}`);
-        //   continue;
-        // }
-
-        const certificateData = {
-          vin: vehicleRecord.vin,
-          makeModel: vehicleRecord.make || "Not available",
-          model: vehicleRecord.model || "Not available",
-          year: vehicleRecord.vehicle_year || "Not available",
-          certificateNumber: vehicleRecord.ref_number,
-          ownerName: "Vehicle Owner", // Replace with actual user data if available
-          ownerAddress: "No 16B Alimini Street Ipaja",
-          date: new Date().toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-          qrCodeBase64: "", 
-        };
-
-        // Add a small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 500));
-        generateCertificate(certificateData);
-      }
-
-      console.log(`Successfully initiated download for ${successfulCerts.length} certificates`);
-      
-    } catch (error) {
-      console.error("Error downloading all certificates:", error);
-      setError("Failed to download certificates. Please try again later.");
-    } finally {
-      setIsLoading(false);
+    if (successfulCerts.length === 0) {
+      setError("No successful certificates available for download.");
+      return;
     }
-  };
+
+    // Generate certificate for each successful VIN
+    for (const cert of successfulCerts) {
+      const vehicleRecord = cert;
+
+      const certificateData = {
+        vin: vehicleRecord.vin,
+        makeModel: vehicleRecord.make || "Not available",
+        model: vehicleRecord.model || "Not available",
+        year: vehicleRecord.vehicle_year || "Not available",
+        certificateNumber: vehicleRecord.ref_number,
+        ownerName: "Vehicle Owner", // Replace with actual user data if available
+        ownerAddress: "No 16B Alimini Street Ipaja",
+        date: new Date().toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+        qrCodeUrl: vehicleRecord.qr_code_image, // Pass the QR code URL from API
+        qrCodeBase64: "", // Keep this empty to let the service fetch from URL
+      };
+
+      // Add a small delay between downloads
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await generateCertificate(certificateData); // Make sure to await this
+    }
+
+    console.log(`Successfully initiated download for ${successfulCerts.length} certificates`);
+    
+  } catch (error) {
+    console.error("Error downloading all certificates:", error);
+    setError("Failed to download certificates. Please try again later.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const certificateFetching = useCallback(async () => {
     try {
@@ -158,56 +222,87 @@ const Certificate = () => {
     
   }, []);
 
-const handleDownloadCertificate = async (cert: ApiVehicleResult) => {   
-   try {
-      setIsLoading(true);
+// const handleDownloadCertificate = async (cert: ApiVehicleResult) => {   
+//    try {
+//       setIsLoading(true);
       
-      // const vinList = items.map(item => item.id);
-      // const detailedData = await vinApiService.getVinDetails(vinList);
-      // console.log("getVinDetails", detailedData);
+//       // const vinList = items.map(item => item.id);
+//       // const detailedData = await vinApiService.getVinDetails(vinList);
+//       // console.log("getVinDetails", detailedData);
       
-        const vehicleRecord = cert
+//         const vehicleRecord = cert
         
 
-        // const vehicleRecord = detailedData.results.find(
-        //   (record) => record.vin === vin
-        // );
+//         // const vehicleRecord = detailedData.results.find(
+//         //   (record) => record.vin === vin
+//         // );
 
-        // if (!vehicleRecord) {
-        //   console.warn(`Vehicle record not found for VIN: ${vin}`);
-        //   continue;
-        // }
+//         // if (!vehicleRecord) {
+//         //   console.warn(`Vehicle record not found for VIN: ${vin}`);
+//         //   continue;
+//         // }
 
-        const certificateData = {
-          vin: vehicleRecord.vin,
-          makeModel: vehicleRecord.make || "Not available",
-          model: vehicleRecord.model || "Not available",
-          year: vehicleRecord.vehicle_year || "Not available",
-          certificateNumber: vehicleRecord.ref_number,
-          ownerName: "Vehicle Owner", // Replace with actual user data if available
-          ownerAddress: "No 16B Alimini Street Ipaja",
-          date: new Date().toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-          qrCodeBase64: "", // Add QR code if available
-        };
+//         const certificateData = {
+//           vin: vehicleRecord.vin,
+//           makeModel: vehicleRecord.make || "Not available",
+//           model: vehicleRecord.model || "Not available",
+//           year: vehicleRecord.vehicle_year || "Not available",
+//           certificateNumber: vehicleRecord.ref_number,
+//           ownerName: "Vehicle Owner", // Replace with actual user data if available
+//           ownerAddress: "No 16B Alimini Street Ipaja",
+//           date: new Date().toLocaleDateString("en-GB", {
+//             day: "2-digit",
+//             month: "short",
+//             year: "numeric",
+//           }),
+//           qrCodeBase64: "", // Add QR code if available
+//         };
 
-        generateCertificate(certificateData);
-      // }
-    } catch (error) {
-      console.error("Error generating certificate:", error);
-      setError("Failed to generate certificate. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+//         generateCertificate(certificateData);
+//       // }
+//     } catch (error) {
+//       console.error("Error generating certificate:", error);
+//       setError("Failed to generate certificate. Please try again later.");
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
 
   // const dismissError = () => {
   //   setError(null);
   // };
 
+  const handleDownloadCertificate = async (cert: ApiVehicleResult) => {   
+  try {
+    setIsLoading(true);
+    
+    const vehicleRecord = cert;
+
+    const certificateData = {
+      vin: vehicleRecord.vin,
+      makeModel: vehicleRecord.make || "Not available",
+      model: vehicleRecord.model || "Not available",
+      year: vehicleRecord.vehicle_year || "Not available",
+      certificateNumber: vehicleRecord.ref_number,
+      ownerName: "Vehicle Owner", // Replace with actual user data if available
+      ownerAddress: "No 16B Alimini Street Ipaja",
+      date: new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      qrCodeUrl: vehicleRecord.qr_code_image, // Pass the QR code URL from API
+      qrCodeBase64: "", // Keep this empty to let the service fetch from URL
+    };
+
+    await generateCertificate(certificateData); // Make sure to await this
+  } catch (error) {
+    console.error("Error generating certificate:", error);
+    setError("Failed to generate certificate. Please try again later.");
+  } finally {
+    setIsLoading(false);
+  }
+};
   console.log(error)
 
   const toggleDetails = () => {

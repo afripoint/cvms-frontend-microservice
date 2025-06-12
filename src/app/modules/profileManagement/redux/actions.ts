@@ -1,7 +1,7 @@
 import axios from "axios"
 import authService from "../../auth/services/authService" // Add this import
 import type { UserData, TeamMember } from "../types/index"
-import { AppThunk } from "../../../core/store"
+
 import { AppThunk } from "../../../core/store"
 
 export const SET_ACTIVE_TAB = "settings/SET_ACTIVE_TAB"
